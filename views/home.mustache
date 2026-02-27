@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }}</title>
+</head>
+<body>
+  <h1>{{ title }}</h1>
+  <p><strong>Message:</strong> {{ message }}</p>
+
+  {{#warning}}
+    <p><strong>Warning:</strong> {{ warning }}</p>
+  {{/warning}}
+
+  {{#error}}
+    <p><strong>Error:</strong> {{ error }}</p>
+  {{/error}}
+</body>
+</html>
