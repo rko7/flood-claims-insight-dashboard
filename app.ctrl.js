@@ -10,15 +10,16 @@ app.engine("mustache", mustacheExpress());
 app.set("view engine", "mustache");
 app.set("views", path.join(__dirname, "views"));
 
+// Serve static files (css, images)
+app.use(express.static("public"));
 
 // Route renders a view
 app.get("/", (req, res) => {
   res.render("home", {
-    title: "FloodDash",
+    title: "Flood Claims Insight Dashboard (FCID)",
     message: "Home page loaded."
   });
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
