@@ -11,6 +11,20 @@ function getAllWatchlist(cb) {
   });
 }
 
+// add a watchlist record
+function addWatchlist(item, cb) {
+  const sql = `
+    INSERT INTO watchlist (claim_id, state, year, amount, saved_at, source)
+    VALUES (?, ?, ?, ?, datetime('now'), ?)
+  `;
+  db.run(
+    sql,
+    [item.claim_id, item.state, item.year, item.amount, item.source],
+    (err) => cb(err)
+  );
+}
+
 module.exports = {
-  getAllWatchlist
+  getAllWatchlist,
+  addWatchlist
 };

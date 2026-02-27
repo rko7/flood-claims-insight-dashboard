@@ -15,20 +15,43 @@
   {{#error}}
     <p><strong>Error:</strong> {{ error }}</p>
   {{/error}}
+
   <h2>Watchlist</h2>
 
-{{#hasError}}
-  <p>Error loading watchlist.</p>
-{{/hasError}}
+  {{#hasError}}
+    <p>Error loading watchlist.</p>
+  {{/hasError}}
 
-{{#watchlist}}
-  <div>
-    {{claim_id}} ({{state}}) - {{year}} - {{amount}}
-  </div>
-{{/watchlist}}
+  {{#watchlist}}
+    <div>
+      {{claim_id}} ({{state}}) - {{year}} - {{amount}}
+    </div>
+  {{/watchlist}}
 
-{{^watchlist}}
-  <p>No saved claims yet.</p>
-{{/watchlist}}
+  {{^watchlist}}
+    <p>No saved claims yet.</p>
+  {{/watchlist}}
+
+  <h2>Add to Watchlist</h2>
+
+  <form method="post" action="/watchlist/add">
+    <div>
+      Claim ID:
+      <input type="text" name="claim_id" required>
+    </div>
+    <div>
+      State:
+      <input type="text" name="state" required>
+    </div>
+    <div>
+      Year:
+      <input type="number" name="year">
+    </div>
+    <div>
+      Amount:
+      <input type="number" step="0.01" name="amount">
+    </div>
+    <button type="submit">Add</button>
+  </form>
 </body>
 </html>

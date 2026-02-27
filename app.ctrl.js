@@ -14,7 +14,10 @@ app.set("views", path.join(__dirname, "views"));
 // Serve static files (css, images)
 app.use(express.static("public"));
 
-// Route renders a view
+// Parse form data
+app.use(express.urlencoded({ extended: false }));
+
+// Home
 app.get("/", (req, res) => {
   model.getAllWatchlist((err, rows) => {
     res.render("home", {
@@ -23,6 +26,24 @@ app.get("/", (req, res) => {
       watchlist: rows || [],
       hasError: !!err
     });
+  });
+});
+
+// Add to watchlist
+app.post("/watchlist/add", (req, res) => {
+  const item = {
+    claim_id: req.body.claim_id,
+    state: req.body.state,
+    year: req.body.year ? parseInt(req.body.year) : null,
+    amount: req.body.amount ? parseFloat(req.body.amount) : null,
+    source: req.body.source || "manual"
+  };
+
+  model.addWatchlist(item, (err) => {
+    if (err) {
+      return res.status(500).send("DB error");
+    }
+    res.redirect("/");
   });
 });
 
