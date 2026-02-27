@@ -1,6 +1,7 @@
 const express = require("express");
 const mustacheExpress = require("mustache-express");
 const path = require("path");
+const model = require("./models/app.model");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,9 +16,13 @@ app.use(express.static("public"));
 
 // Route renders a view
 app.get("/", (req, res) => {
-  res.render("home", {
-    title: "Flood Claims Insight Dashboard (FCID)",
-    message: "Home page loaded."
+  model.getAllWatchlist((err, rows) => {
+    res.render("home", {
+      title: "Flood Claims Insight Dashboard (FCID)",
+      message: "Home page loaded.",
+      watchlist: rows || [],
+      hasError: !!err
+    });
   });
 });
 

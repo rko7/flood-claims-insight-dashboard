@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>{{ title }}</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <h1>{{ title }}</h1>
@@ -14,8 +15,20 @@
   {{#error}}
     <p><strong>Error:</strong> {{ error }}</p>
   {{/error}}
+  <h2>Watchlist</h2>
+
+{{#hasError}}
+  <p>Error loading watchlist.</p>
+{{/hasError}}
+
+{{#watchlist}}
+  <div>
+    {{claim_id}} ({{state}}) - {{year}} - {{amount}}
+  </div>
+{{/watchlist}}
+
+{{^watchlist}}
+  <p>No saved claims yet.</p>
+{{/watchlist}}
 </body>
-
-<link rel="stylesheet" href="/css/style.css">
-
 </html>
