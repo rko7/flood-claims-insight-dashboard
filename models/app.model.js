@@ -64,11 +64,27 @@ function deleteNote(noteId, cb) {
   db.run(sql, [noteId], (err) => cb(err));
 }
 
+// get a note by id
+function getNoteById(noteId, cb) {
+  const sql = "SELECT * FROM notes WHERE id = ?";
+  db.get(sql, [noteId], (err, row) => {
+    cb(err, row);
+  });
+}
+
+// update a note
+function updateNote(noteId, noteText, priority, cb) {
+  const sql = "UPDATE notes SET note_text = ?, priority = ? WHERE id = ?";
+  db.run(sql, [noteText, priority, noteId], (err) => cb(err));
+}
+
 module.exports = {
   getAllWatchlist,
   addWatchlist,
   deleteWatchlist,
   getNotesByClaimId,
   addNote,
-  deleteNote
+  deleteNote,
+  getNoteById,
+  updateNote
 };

@@ -40,6 +40,8 @@
     <div>
       ({{priority}}) {{note_text}} - {{created_at}}
 
+      <a href="/notes/{{id}}/edit?claim_id={{claim.claimId}}">Edit</a>
+
       <form method="post" action="/notes/delete" style="display:inline;">
         <input type="hidden" name="claim_id" value="{{claim.claimId}}">
         <input type="hidden" name="note_id" value="{{id}}">

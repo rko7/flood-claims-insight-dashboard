@@ -161,6 +161,43 @@ app.post("/notes/delete", (req, res) => {
   });
 });
 
+// edit note page
+app.get("/notes/:id/edit", (req, res) => {
+  // show edit form
+  const noteId = req.params.id ? parseInt(req.params.id) : null;
+  const claimId = (req.query.claim_id || "").trim();
+
+  if (!noteId || !claimId) return res.status(400).send("Invalid request");
+
+  model.getNoteById(noteId, (err, note) => {
+    if (err) return res.status(500).send("DB error");
+    if (!note) return res.status(404).send("Note not found");
+
+    res.render("editNote", {
+      title: "Edit Note",
+      message: "Edit page loaded.",
+      claimId: claimId,
+      note: note
+    });
+  });
+});
+
+// update note
+app.post("/notes/update", (req, res) => {
+  // save changes
+  const noteId = req.body.note_id ? parseInt(req.body.note_id) : null;
+  const claimId = (req.body.claim_id || "").trim();
+  const noteText = (req.body.note_text || "").trim();
+  const priority = req.body.priority ? parseInt(req.body.priority) : null;
+
+  if (!noteId || !claimId || !noteText) return res.status(400).send("Invalid note");
+
+  model.updateNote(noteId, noteText, priority, (err) => {
+    if (err) return res.status(500).send("DB error");
+    res.redirect(`/claims/${claimId}`);
+  });
+});
+
 // add to watchlist
 app.post("/watchlist/add", (req, res) => {
   const item = {

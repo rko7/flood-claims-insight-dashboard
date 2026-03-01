@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  {{> nav}}
+
+  <h1>{{ title }}</h1>
+  <p><strong>Message:</strong> {{ message }}</p>
+
+  <!-- Back -->
+  <p><a href="/claims/{{claimId}}">Back to Details</a></p>
+
+  <!-- Edit form -->
+  <form method="post" action="/notes/update">
+    <input type="hidden" name="note_id" value="{{note.id}}">
+    <input type="hidden" name="claim_id" value="{{claimId}}">
+
+    <div class="form-row">
+      <label class="form-label">Priority:</label>
+      <input type="number" name="priority" value="{{note.priority}}">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Note:</label>
+      <textarea name="note_text" rows="4" cols="40" required>{{note.note_text}}</textarea>
+    </div>
+
+    <button type="submit">Update Note</button>
+  </form>
+</body>
+</html>
