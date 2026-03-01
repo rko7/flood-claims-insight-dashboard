@@ -29,6 +29,14 @@ app.get("/", (req, res) => {
   });
 });
 
+// claims explorer
+app.get("/claims", (req, res) => {
+  res.render("claims", {
+    title: "Claims Explorer",
+    message: "Claims page loaded."
+  });
+});
+
 // add to watchlist
 app.post("/watchlist/add", (req, res) => {
   const item = {

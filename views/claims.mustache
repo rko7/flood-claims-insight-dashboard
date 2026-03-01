@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  {{> nav}}
+  
+  <h1>{{ title }}</h1>
+  <p><strong>Message:</strong> {{ message }}</p>
+
+  {{#warning}}
+    <p><strong>Warning:</strong> {{ warning }}</p>
+  {{/warning}}
+
+  {{#error}}
+    <p><strong>Error:</strong> {{ error }}</p>
+  {{/error}}
+
+  <!-- Filters -->
+  <form method="get" action="/claims">
+    <div class="form-row">
+      <label class="form-label">State:</label>
+      <input type="text" name="state">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">From:</label>
+      <input type="date" name="from">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">To:</label>
+      <input type="date" name="to">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Min paid:</label>
+      <input type="number" step="0.01" name="minPaid">
+    </div>
+
+    <button type="submit">Apply</button>
+  </form>
+</body>
+</html>
