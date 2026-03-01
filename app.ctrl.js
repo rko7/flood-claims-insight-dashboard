@@ -147,6 +147,20 @@ app.post("/notes/add", (req, res) => {
   );
 });
 
+// delete note
+app.post("/notes/delete", (req, res) => {
+  // delete and return to details page
+  const claimId = (req.body.claim_id || "").trim();
+  const noteId = req.body.note_id ? parseInt(req.body.note_id) : null;
+
+  if (!claimId || !noteId) return res.status(400).send("Invalid request");
+
+  model.deleteNote(noteId, (err) => {
+    if (err) return res.status(500).send("DB error");
+    res.redirect(`/claims/${claimId}`);
+  });
+});
+
 // add to watchlist
 app.post("/watchlist/add", (req, res) => {
   const item = {

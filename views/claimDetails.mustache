@@ -39,6 +39,12 @@
   {{#notes}}
     <div>
       ({{priority}}) {{note_text}} - {{created_at}}
+
+      <form method="post" action="/notes/delete" style="display:inline;">
+        <input type="hidden" name="claim_id" value="{{claim.claimId}}">
+        <input type="hidden" name="note_id" value="{{id}}">
+        <button type="submit">Delete</button>
+      </form>
     </div>
   {{/notes}}
 
@@ -58,7 +64,7 @@
 
     <div class="form-row">
       <label class="form-label">Note:</label>
-      <input type="textarea" name="note_text" required>
+      <textarea name="note_text" rows="4" cols="40" required></textarea>
     </div>
 
     <button type="submit">Save Note</button>

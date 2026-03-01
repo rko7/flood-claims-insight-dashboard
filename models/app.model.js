@@ -58,10 +58,17 @@ function addNote(note, cb) {
   db.run(sql, [note.claim_id, note.note_text, note.priority], (err) => cb(err));
 }
 
+// delete a note
+function deleteNote(noteId, cb) {
+  const sql = "DELETE FROM notes WHERE id = ?";
+  db.run(sql, [noteId], (err) => cb(err));
+}
+
 module.exports = {
   getAllWatchlist,
   addWatchlist,
   deleteWatchlist,
   getNotesByClaimId,
-  addNote
+  addNote,
+  deleteNote
 };
