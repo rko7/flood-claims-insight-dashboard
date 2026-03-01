@@ -58,6 +58,7 @@
         <th>State</th>
         <th>Loss Date</th>
         <th>Paid Amount</th>
+        <th>Save</th>
       </tr>
 
       {{#results}}
@@ -66,6 +67,16 @@
           <td>{{state}}</td>
           <td>{{lossDate}}</td>
           <td>{{paidAmount}}</td>
+          <td>
+            <form method="post" action="/watchlist/add">
+              <input type="hidden" name="claim_id" value="{{claimId}}">
+              <input type="hidden" name="state" value="{{state}}">
+              <input type="hidden" name="year" value="{{year}}">
+              <input type="hidden" name="amount" value="{{paidAmount}}">
+              <input type="hidden" name="source" value="claims">
+              <button type="submit">Save</button>
+            </form>
+          </td>
         </tr>
       {{/results}}
     </table>

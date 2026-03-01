@@ -53,12 +53,14 @@ app.get("/claims", (req, res) => {
         claimId: "demo-001",
         state: filters.state || "FL",
         lossDate: "2026-01-15",
+        year: 2026,
         paidAmount: 1000.0
       },
       {
         claimId: "demo-002",
         state: filters.state || "FL",
         lossDate: "2026-02-01",
+        year: 2026,
         paidAmount: 2500.0
       }
     ];
