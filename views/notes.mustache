@@ -17,8 +17,9 @@
   <!-- Notes list -->
   {{#notes}}
     <div>
-      <a href="/claims/{{claim_id}}">{{claim_id}}</a> -
-      ({{priority}}) {{note_text}} - {{created_at}}
+      <a href="/claims/{{claim_id}}">{{claim_id}}</a>
+      - {{wl_state}} {{wl_year}} {{wl_amount}}
+      - ({{priority}}) {{note_text}} - {{created_at}}
     </div>
   {{/notes}}
 

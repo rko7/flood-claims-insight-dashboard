@@ -78,9 +78,22 @@ function updateNote(noteId, noteText, priority, cb) {
   db.run(sql, [noteText, priority, noteId], (err) => cb(err));
 }
 
-// get all notes (latest first)
+// get all notes with watchlist info
 function getAllNotes(cb) {
-  const sql = "SELECT * FROM notes ORDER BY id DESC";
+  const sql = `
+    SELECT
+      n.id,
+      n.claim_id,
+      n.note_text,
+      n.priority,
+      n.created_at,
+      w.state AS wl_state,
+      w.year AS wl_year,
+      w.amount AS wl_amount
+    FROM notes n
+    LEFT JOIN watchlist w ON w.claim_id = n.claim_id
+    ORDER BY n.id DESC
+  `;
   db.all(sql, [], (err, rows) => {
     cb(err, rows);
   });
