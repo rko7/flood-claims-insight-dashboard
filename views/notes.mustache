@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  {{> nav}}
+
+  <h1>{{ title }}</h1>
+  <p><strong>Message:</strong> {{ message }}</p>
+
+  {{#hasNotesError}}
+    <p>Error loading notes.</p>
+  {{/hasNotesError}}
+
+  <!-- Notes list -->
+  {{#notes}}
+    <div>
+      <a href="/claims/{{claim_id}}">{{claim_id}}</a> -
+      ({{priority}}) {{note_text}} - {{created_at}}
+    </div>
+  {{/notes}}
+
+  {{^notes}}
+    <p>No notes yet.</p>
+  {{/notes}}
+</body>
+</html>

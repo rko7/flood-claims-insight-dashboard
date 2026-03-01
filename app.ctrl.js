@@ -130,6 +130,19 @@ app.get("/claims/:id", (req, res) => {
   });
 });
 
+// notes list
+app.get("/notes", (req, res) => {
+  // list all notes
+  model.getAllNotes((err, notes) => {
+    res.render("notes", {
+      title: "Notes",
+      message: "Notes page loaded.",
+      notes: notes || [],
+      hasNotesError: !!err
+    });
+  });
+});
+
 // add note
 app.post("/notes/add", (req, res) => {
   const claimId = (req.body.claim_id || "").trim();

@@ -78,6 +78,14 @@ function updateNote(noteId, noteText, priority, cb) {
   db.run(sql, [noteText, priority, noteId], (err) => cb(err));
 }
 
+// get all notes (latest first)
+function getAllNotes(cb) {
+  const sql = "SELECT * FROM notes ORDER BY id DESC";
+  db.all(sql, [], (err, rows) => {
+    cb(err, rows);
+  });
+}
+
 module.exports = {
   getAllWatchlist,
   addWatchlist,
@@ -86,5 +94,6 @@ module.exports = {
   addNote,
   deleteNote,
   getNoteById,
-  updateNote
+  updateNote,
+  getAllNotes
 };
