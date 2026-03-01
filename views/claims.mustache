@@ -45,8 +45,30 @@
   </form>
 
   {{#hasFilters}}
-    <!-- Placeholder -->
     <p>Filters applied.</p>
   {{/hasFilters}}
+
+  {{#hasResults}}
+    <!-- Results -->
+    <h2>Claim Results</h2>
+
+    <table border="1" cellpadding="6">
+      <tr>
+        <th>Claim ID</th>
+        <th>State</th>
+        <th>Loss Date</th>
+        <th>Paid Amount</th>
+      </tr>
+
+      {{#results}}
+        <tr>
+          <td>{{claimId}}</td>
+          <td>{{state}}</td>
+          <td>{{lossDate}}</td>
+          <td>{{paidAmount}}</td>
+        </tr>
+      {{/results}}
+    </table>
+  {{/hasResults}}
 </body>
 </html>

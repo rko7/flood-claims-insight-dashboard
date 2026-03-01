@@ -45,11 +45,32 @@ app.get("/claims", (req, res) => {
     filters.to !== "" ||
     filters.minPaid !== "";
 
+  // demo results
+  let results = [];
+  if (hasFilters) {
+    results = [
+      {
+        claimId: "demo-001",
+        state: filters.state || "FL",
+        lossDate: "2026-01-15",
+        paidAmount: filters.minPaid || "1000.00"
+      },
+      {
+        claimId: "demo-002",
+        state: filters.state || "FL",
+        lossDate: "2026-02-01",
+        paidAmount: filters.minPaid || "2500.00"
+      }
+    ];
+  }
+
   res.render("claims", {
     title: "Claims Explorer",
     message: "Claims page loaded.",
     filters: filters,
-    hasFilters: hasFilters
+    hasFilters: hasFilters,
+    hasResults: results.length > 0,
+    results: results
   });
 });
 
@@ -64,9 +85,7 @@ app.post("/watchlist/add", (req, res) => {
   };
 
   model.addWatchlist(item, (err) => {
-    if (err) {
-      return res.status(500).send("DB error");
-    }
+    if (err) return res.status(500).send("DB error");
     res.redirect("/");
   });
 });
@@ -81,7 +100,6 @@ app.post("/watchlist/delete", (req, res) => {
     res.redirect("/");
   });
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
