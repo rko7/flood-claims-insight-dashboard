@@ -31,9 +31,25 @@ app.get("/", (req, res) => {
 
 // claims explorer
 app.get("/claims", (req, res) => {
+  // read filters
+  const filters = {
+    state: (req.query.state || "").trim(),
+    from: (req.query.from || "").trim(),
+    to: (req.query.to || "").trim(),
+    minPaid: (req.query.minPaid || "").trim()
+  };
+
+  const hasFilters =
+    filters.state !== "" ||
+    filters.from !== "" ||
+    filters.to !== "" ||
+    filters.minPaid !== "";
+
   res.render("claims", {
     title: "Claims Explorer",
-    message: "Claims page loaded."
+    message: "Claims page loaded.",
+    filters: filters,
+    hasFilters: hasFilters
   });
 });
 

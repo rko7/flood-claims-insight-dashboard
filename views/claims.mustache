@@ -6,7 +6,7 @@
 </head>
 <body>
   {{> nav}}
-  
+
   <h1>{{ title }}</h1>
   <p><strong>Message:</strong> {{ message }}</p>
 
@@ -22,25 +22,31 @@
   <form method="get" action="/claims">
     <div class="form-row">
       <label class="form-label">State:</label>
-      <input type="text" name="state">
+      <input type="text" name="state" value="{{filters.state}}">
     </div>
 
     <div class="form-row">
       <label class="form-label">From:</label>
-      <input type="date" name="from">
+      <input type="date" name="from" value="{{filters.from}}">
     </div>
 
     <div class="form-row">
       <label class="form-label">To:</label>
-      <input type="date" name="to">
+      <input type="date" name="to" value="{{filters.to}}">
     </div>
 
     <div class="form-row">
       <label class="form-label">Min paid:</label>
-      <input type="number" step="0.01" name="minPaid">
+      <input type="number" step="0.01" name="minPaid" value="{{filters.minPaid}}">
     </div>
 
     <button type="submit">Apply</button>
+    <a href="/claims">Reset</a>
   </form>
+
+  {{#hasFilters}}
+    <!-- Placeholder -->
+    <p>Filters applied.</p>
+  {{/hasFilters}}
 </body>
 </html>
