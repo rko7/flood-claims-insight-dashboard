@@ -90,7 +90,7 @@ app.get("/claims", (req, res) => {
   });
 });
 
-// claim details
+// claim deno details
 app.get("/claims/:id", (req, res) => {
   // demo only
   const id = req.params.id;
@@ -116,15 +116,35 @@ app.get("/claims/:id", (req, res) => {
     };
   }
 
-  if (!details) {
-    return res.status(404).send("Claim not found");
-  }
+  if (!details) return res.status(404).send("Claim not found");
 
-  res.render("claimDetails", {
-    title: "Claim Details",
-    message: "Details page loaded.",
-    claim: details
+  // load notes
+  model.getNotesByClaimId(id, (err, notes) => {
+    res.render("claimDetails", {
+      title: "Claim Details",
+      message: "Details page loaded.",
+      claim: details,
+      notes: notes || [],
+      hasNotesError: !!err
+    });
   });
+});
+
+// add note
+app.post("/notes/add", (req, res) => {
+  const claimId = (req.body.claim_id || "").trim();
+  const noteText = (req.body.note_text || "").trim();
+  const priority = req.body.priority ? parseInt(req.body.priority) : null;
+
+  if (!claimId || !noteText) return res.status(400).send("Invalid note");
+
+  model.addNote(
+    { claim_id: claimId, note_text: noteText, priority: priority },
+    (err) => {
+      if (err) return res.status(500).send("DB error");
+      res.redirect(`/claims/${claimId}`);
+    }
+  );
 });
 
 // add to watchlist

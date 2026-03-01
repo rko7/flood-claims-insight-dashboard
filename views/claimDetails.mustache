@@ -28,5 +28,40 @@
   <div>Year: {{claim.year}}</div>
   <div>Paid Amount: {{claim.paidAmount}}</div>
   <div>Source: {{claim.source}}</div>
+
+  <!-- Notes -->
+  <h2>Notes</h2>
+
+  {{#hasNotesError}}
+    <p>Error loading notes.</p>
+  {{/hasNotesError}}
+
+  {{#notes}}
+    <div>
+      ({{priority}}) {{note_text}} - {{created_at}}
+    </div>
+  {{/notes}}
+
+  {{^notes}}
+    <p>No notes yet.</p>
+  {{/notes}}
+
+  <!-- Add note -->
+  <h2>Add Note</h2>
+  <form method="post" action="/notes/add">
+    <input type="hidden" name="claim_id" value="{{claim.claimId}}">
+
+    <div class="form-row">
+      <label class="form-label">Priority:</label>
+      <input type="number" name="priority">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Note:</label>
+      <input type="textarea" name="note_text" required>
+    </div>
+
+    <button type="submit">Save Note</button>
+  </form>
 </body>
 </html>
