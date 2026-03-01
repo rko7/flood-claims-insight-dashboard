@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  {{> nav}}
+
+  <h1>{{ title }}</h1>
+  <p><strong>Message:</strong> {{ message }}</p>
+
+  {{#warning}}
+    <p><strong>Warning:</strong> {{ warning }}</p>
+  {{/warning}}
+
+  {{#error}}
+    <p><strong>Error:</strong> {{ error }}</p>
+  {{/error}}
+
+  <!-- Navigation -->
+  <p><a href="/claims">Back to Claims</a></p>
+
+  <!-- Claim info -->
+  <h2>{{claim.claimId}}</h2>
+  <div>State: {{claim.state}}</div>
+  <div>Loss Date: {{claim.lossDate}}</div>
+  <div>Year: {{claim.year}}</div>
+  <div>Paid Amount: {{claim.paidAmount}}</div>
+  <div>Source: {{claim.source}}</div>
+</body>
+</html>

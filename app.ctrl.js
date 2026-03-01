@@ -90,6 +90,43 @@ app.get("/claims", (req, res) => {
   });
 });
 
+// claim details
+app.get("/claims/:id", (req, res) => {
+  // demo only
+  const id = req.params.id;
+
+  let details = null;
+  if (id === "demo-001") {
+    details = {
+      claimId: "demo-001",
+      state: "FL",
+      lossDate: "2026-01-15",
+      year: 2026,
+      paidAmount: "1000.00",
+      source: "demo"
+    };
+  } else if (id === "demo-002") {
+    details = {
+      claimId: "demo-002",
+      state: "FL",
+      lossDate: "2026-02-01",
+      year: 2026,
+      paidAmount: "2500.00",
+      source: "demo"
+    };
+  }
+
+  if (!details) {
+    return res.status(404).send("Claim not found");
+  }
+
+  res.render("claimDetails", {
+    title: "Claim Details",
+    message: "Details page loaded.",
+    claim: details
+  });
+});
+
 // add to watchlist
 app.post("/watchlist/add", (req, res) => {
   const item = {
