@@ -53,16 +53,30 @@ app.get("/claims", (req, res) => {
         claimId: "demo-001",
         state: filters.state || "FL",
         lossDate: "2026-01-15",
-        paidAmount: filters.minPaid || "1000.00"
+        paidAmount: 1000.0
       },
       {
         claimId: "demo-002",
         state: filters.state || "FL",
         lossDate: "2026-02-01",
-        paidAmount: filters.minPaid || "2500.00"
+        paidAmount: 2500.0
       }
     ];
+
+    // apply minPaid filter
+    if (filters.minPaid !== "") {
+      const min = parseFloat(filters.minPaid);
+      if (!Number.isNaN(min)) {
+        results = results.filter((r) => r.paidAmount >= min);
+      }
+    }
   }
+
+  // format paidAmount for display
+  results = results.map((r) => ({
+    ...r,
+    paidAmount: r.paidAmount.toFixed(2)
+  }));
 
   res.render("claims", {
     title: "Claims Explorer",
