@@ -27,7 +27,8 @@
 
   {{#watchlist}}
     <div>
-      {{claim_id}} ({{state}}) - {{year}} - {{amount}}
+      <a href="/claims/{{claim_id}}">{{claim_id}}</a>
+      ({{state}}) - {{year}} - {{amount}}
 
       <form method="post" action="/watchlist/delete" style="display:inline;">
         <input type="hidden" name="id" value="{{id}}">

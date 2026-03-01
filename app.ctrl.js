@@ -116,17 +116,38 @@ app.get("/claims/:id", (req, res) => {
     };
   }
 
-  if (!details) return res.status(404).send("Claim not found");
-
-  // load notes
-  model.getNotesByClaimId(id, (err, notes) => {
-    res.render("claimDetails", {
-      title: "Claim Details",
-      message: "Details page loaded.",
-      claim: details,
-      notes: notes || [],
-      hasNotesError: !!err
+  // watchlist lookup
+  const loadNotesAndRender = (claimDetails) => {
+    model.getNotesByClaimId(id, (err, notes) => {
+      res.render("claimDetails", {
+        title: "Claim Details",
+        message: "Details page loaded.",
+        claim: claimDetails,
+        notes: notes || [],
+        hasNotesError: !!err
+      });
     });
+  };
+
+  if (details) {
+    return loadNotesAndRender(details);
+  }
+
+  // watchlist fallback
+  model.getWatchlistByClaimId(id, (err, row) => {
+    if (err) return res.status(500).send("DB error");
+    if (!row) return res.status(404).send("Claim not found");
+
+    const claimDetails = {
+      claimId: row.claim_id,
+      state: row.state || "",
+      lossDate: "",
+      year: row.year || "",
+      paidAmount: row.amount != null ? Number(row.amount).toFixed(2) : "",
+      source: row.source || "watchlist"
+    };
+
+    loadNotesAndRender(claimDetails);
   });
 });
 

@@ -22,6 +22,14 @@ function getAllWatchlist(cb) {
   });
 }
 
+// get a watchlist record by claim_id
+function getWatchlistByClaimId(claimId, cb) {
+  const sql = "SELECT * FROM watchlist WHERE claim_id = ? ORDER BY id DESC LIMIT 1";
+  db.get(sql, [claimId], (err, row) => {
+    cb(err, row);
+  });
+}
+
 // add a watchlist record
 function addWatchlist(item, cb) {
   const sql = `
@@ -101,6 +109,7 @@ function getAllNotes(cb) {
 
 module.exports = {
   getAllWatchlist,
+  getWatchlistByClaimId,
   addWatchlist,
   deleteWatchlist,
   getNotesByClaimId,
