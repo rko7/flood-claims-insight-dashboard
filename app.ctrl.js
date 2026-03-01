@@ -11,13 +11,13 @@ app.engine("mustache", mustacheExpress());
 app.set("view engine", "mustache");
 app.set("views", path.join(__dirname, "views"));
 
-// Serve static files (css, images)
+// serve static files (css, images)
 app.use(express.static("public"));
 
-// Parse form data
+// parse form data
 app.use(express.urlencoded({ extended: false }));
 
-// Home
+// home
 app.get("/", (req, res) => {
   model.getAllWatchlist((err, rows) => {
     res.render("home", {
@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// Add to watchlist
+// add to watchlist
 app.post("/watchlist/add", (req, res) => {
   const item = {
     claim_id: req.body.claim_id,
@@ -46,6 +46,18 @@ app.post("/watchlist/add", (req, res) => {
     res.redirect("/");
   });
 });
+
+// delete from watchlist
+app.post("/watchlist/delete", (req, res) => {
+  const id = req.body.id ? parseInt(req.body.id) : null;
+  if (!id) return res.status(400).send("Invalid id");
+
+  model.deleteWatchlist(id, (err) => {
+    if (err) return res.status(500).send("DB error");
+    res.redirect("/");
+  });
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

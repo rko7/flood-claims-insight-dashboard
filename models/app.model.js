@@ -24,7 +24,14 @@ function addWatchlist(item, cb) {
   );
 }
 
+// delete a watchlist record
+function deleteWatchlist(id, cb) {
+  const sql = "DELETE FROM watchlist WHERE id = ?";
+  db.run(sql, [id], (err) => cb(err));
+}
+
 module.exports = {
   getAllWatchlist,
-  addWatchlist
+  addWatchlist,
+  deleteWatchlist
 };

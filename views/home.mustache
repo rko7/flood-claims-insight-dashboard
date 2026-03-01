@@ -16,6 +16,7 @@
     <p><strong>Error:</strong> {{ error }}</p>
   {{/error}}
 
+  <!-- Watchlist section -->
   <h2>Watchlist</h2>
 
   {{#hasError}}
@@ -25,6 +26,11 @@
   {{#watchlist}}
     <div>
       {{claim_id}} ({{state}}) - {{year}} - {{amount}}
+
+      <form method="post" action="/watchlist/delete" style="display:inline;">
+        <input type="hidden" name="id" value="{{id}}">
+        <button type="submit">Delete</button>
+      </form>
     </div>
   {{/watchlist}}
 
@@ -32,6 +38,7 @@
     <p>No saved claims yet.</p>
   {{/watchlist}}
 
+  <!-- Add to watchlist form -->
   <h2>Add to Watchlist</h2>
 
   <form method="post" action="/watchlist/add">
