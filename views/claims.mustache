@@ -9,19 +9,66 @@
 
   <h1>{{ title }}</h1>
 
-  {{#warning}}
-    <p><strong>Warning:</strong> {{ warning }}</p>
-  {{/warning}}
-
-  {{#error}}
-    <p><strong>Error:</strong> {{ error }}</p>
-  {{/error}}
-
   <!-- Filters -->
   <form method="get" action="/claims">
     <div class="form-row">
       <label class="form-label">State:</label>
-      <input type="text" name="state" value="{{filters.state}}">
+      <select name="state">
+        <option value="">-</option>
+
+        <!-- US States + DC (abbreviations) -->
+        <option value="AL">AL</option>
+        <option value="AK">AK</option>
+        <option value="AZ">AZ</option>
+        <option value="AR">AR</option>
+        <option value="CA">CA</option>
+        <option value="CO">CO</option>
+        <option value="CT">CT</option>
+        <option value="DE">DE</option>
+        <option value="DC">DC</option>
+        <option value="FL">FL</option>
+        <option value="GA">GA</option>
+        <option value="HI">HI</option>
+        <option value="ID">ID</option>
+        <option value="IL">IL</option>
+        <option value="IN">IN</option>
+        <option value="IA">IA</option>
+        <option value="KS">KS</option>
+        <option value="KY">KY</option>
+        <option value="LA">LA</option>
+        <option value="ME">ME</option>
+        <option value="MD">MD</option>
+        <option value="MA">MA</option>
+        <option value="MI">MI</option>
+        <option value="MN">MN</option>
+        <option value="MS">MS</option>
+        <option value="MO">MO</option>
+        <option value="MT">MT</option>
+        <option value="NE">NE</option>
+        <option value="NV">NV</option>
+        <option value="NH">NH</option>
+        <option value="NJ">NJ</option>
+        <option value="NM">NM</option>
+        <option value="NY">NY</option>
+        <option value="NC">NC</option>
+        <option value="ND">ND</option>
+        <option value="OH">OH</option>
+        <option value="OK">OK</option>
+        <option value="OR">OR</option>
+        <option value="PA">PA</option>
+        <option value="RI">RI</option>
+        <option value="SC">SC</option>
+        <option value="SD">SD</option>
+        <option value="TN">TN</option>
+        <option value="TX">TX</option>
+        <option value="UT">UT</option>
+        <option value="VT">VT</option>
+        <option value="VA">VA</option>
+        <option value="WA">WA</option>
+        <option value="WV">WV</option>
+        <option value="WI">WI</option>
+        <option value="WY">WY</option>
+      </select>
     </div>
 
     <div class="form-row">
@@ -35,17 +82,13 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Min paid:</label>
+      <label class="form-label">Min Paid ($):</label>
       <input type="number" step="0.01" name="minPaid" value="{{filters.minPaid}}">
     </div>
 
     <button type="submit">Apply</button>
     <a href="/claims">Reset</a>
   </form>
-
-  {{#hasFilters}}
-    <p>Filters applied.</p>
-  {{/hasFilters}}
 
   {{#hasResults}}
     <!-- Results -->
@@ -62,27 +105,31 @@
       </tr>
 
       {{#results}}
-        <tr>
-          <td>{{claimId}}</td>
-          <td>{{state}}</td>
-          <td>{{lossDate}}</td>
-          <td>{{paidAmount}}</td>
-          <td>
-            <a href="/claims/{{claimId}}">View</a>
-          </td>
-          <td>
-            <form method="post" action="/watchlist/add">
-              <input type="hidden" name="claim_id" value="{{claimId}}">
-              <input type="hidden" name="state" value="{{state}}">
-              <input type="hidden" name="year" value="{{year}}">
-              <input type="hidden" name="amount" value="{{paidAmount}}">
-              <input type="hidden" name="source" value="claims">
-              <button type="submit">Save</button>
-            </form>
-          </td>
-        </tr>
+      <tr>
+        <td>{{claimId}}</td>
+        <td>{{state}}</td>
+        <td>{{lossDate}}</td>
+        <td>{{paidAmount}}</td>
+        <td><a href="/claims/{{claimId}}">View</a></td>
+        <td>
+          <form method="post" action="/watchlist/add" style="display:inline;">
+            <input type="hidden" name="claim_id" value="{{claimId}}">
+            <input type="hidden" name="state" value="{{state}}">
+            <input type="hidden" name="year" value="{{year}}">
+            <input type="hidden" name="amount" value="{{paidAmount}}">
+            <input type="hidden" name="source" value="claims">
+            <button type="submit">Save</button>
+          </form>
+        </td>
+      </tr>
       {{/results}}
     </table>
+  {{/hasResults}}
+
+  {{^hasResults}}
+    {{#hasFilters}}
+      <p>No results found.</p>
+    {{/hasFilters}}
   {{/hasResults}}
 </body>
 </html>
