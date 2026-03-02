@@ -15,6 +15,19 @@ db.run(`
   )
 `);
 
+// watchlist table
+db.run(`
+  CREATE TABLE IF NOT EXISTS watchlist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    claim_id TEXT NOT NULL,
+    state TEXT NOT NULL,
+    year INTEGER,
+    amount REAL,
+    saved_at TEXT NOT NULL,
+    source TEXT
+  )
+`);
+
 function getAllWatchlist(cb) {
   const sql = "SELECT * FROM watchlist ORDER BY id DESC";
   db.all(sql, [], (err, rows) => {
