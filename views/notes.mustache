@@ -25,12 +25,22 @@
 
       <tr>
         <td><a href="/claims/{{claim_id}}">{{claim_id}}</a></td>
-        <td>{{wl_state}} {{wl_year}} {{wl_amount}}</td>
+
+        <td>
+          {{#wl_state}}{{wl_state}}{{/wl_state}}{{^wl_state}}-{{/wl_state}}
+          {{#wl_year}} {{wl_year}}{{/wl_year}}
+          {{#wl_amount}} ${{wl_amount}}{{/wl_amount}}
+        </td>
+
         <td>{{priorityLabel}}</td>
         <td>{{note_text}}</td>
         <td>{{created_at}}</td>
         <td>
-          <a href="/notes/{{id}}/edit?claim_id={{claim_id}}">Edit</a>
+          <form method="get" action="/notes/{{id}}/edit" style="display:inline;">
+            <input type="hidden" name="claim_id" value="{{claim_id}}">
+            <button type="submit">Edit</button>
+          </form>
+
           <form method="post" action="/notes/delete" style="display:inline;">
             <input type="hidden" name="claim_id" value="{{claim_id}}">
             <input type="hidden" name="note_id" value="{{id}}">

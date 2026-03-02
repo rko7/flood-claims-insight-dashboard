@@ -16,7 +16,7 @@
       <select name="state">
         <option value="">-</option>
 
-        <!-- US States + DC (abbreviations) -->
+        <!-- US States + DC -->
         <option value="AL">AL</option>
         <option value="AK">AK</option>
         <option value="AZ">AZ</option>
@@ -82,16 +82,15 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Min Paid ($):</label>
+      <label class="form-label">Amount&nbsp;($):</label>
       <input type="number" step="0.01" name="minPaid" value="{{filters.minPaid}}">
     </div>
 
     <button type="submit">Apply</button>
-    <a href="/claims">Reset</a>
+    <a class="button-link" href="/claims">Reset</a>
   </form>
 
   {{#hasResults}}
-    <!-- Results -->
     <h2>Claim Results</h2>
 
     <table border="1" cellpadding="6">
@@ -110,7 +109,13 @@
         <td>{{state}}</td>
         <td>{{lossDate}}</td>
         <td>{{paidAmount}}</td>
-        <td><a href="/claims/{{claimId}}">View</a></td>
+
+        <td>
+          <form method="get" action="/claims/{{claimId}}" style="display:inline;">
+            <button type="submit">View</button>
+          </form>
+        </td>
+
         <td>
           <form method="post" action="/watchlist/add" style="display:inline;">
             <input type="hidden" name="claim_id" value="{{claimId}}">

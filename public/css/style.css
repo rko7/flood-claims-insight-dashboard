@@ -1,6 +1,231 @@
-body { font-family: Arial, sans-serif; padding: 16px; }
-h1 { color: #104c9b; }
+/* palette */
+:root{
+  --blue:#104c9b;
+  --blue2:#0b3b78;
+  --silver:#f2f4f7;
+  --silver2:#e5e7eb;
+  --brown:#6b4e3d;
+  --text:#1f2937;
+  --border:#c7ccd4;
+  --shadow: rgba(0,0,0,0.06);
+}
 
-/* Form */
-.form-row { margin-bottom: 6px; }
-.form-label { display: inline-block; width: 80px; }
+*{ box-sizing:border-box; }
+
+body{
+  font-family: Arial, sans-serif;
+  margin:0;
+  padding:20px; /* prevents clipping */
+  color:var(--text);
+  background:var(--silver);
+}
+
+/* limit width + center */
+main,
+body > nav,
+body > h1,
+body > h2,
+body > p,
+body > form,
+body > table{
+  max-width: 1050px;  /* reduce overall width */
+  margin-left:auto;
+  margin-right:auto;
+}
+
+h1,h2{
+  margin: 10px 0 12px;
+  color:var(--blue);
+}
+
+a{ color:var(--blue2); }
+a:hover{ color:var(--blue); }
+
+/* Nav */
+nav{
+  display:block;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px 18px;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 1px 0 var(--shadow);
+}
+
+nav a{
+  display:inline-block;
+  text-decoration:none;
+  font-weight:800;
+  margin-right:28px;
+}
+
+nav a:last-child{ margin-right:0; }
+
+/* Forms */     
+form{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  margin:12px auto;
+  box-shadow: 0 1px 0 var(--shadow);
+}
+
+.form-row{ margin-bottom:12px; }
+
+.form-label{
+  display:inline-block;
+  width:115px;
+  font-weight:800;
+  color:var(--brown);
+  white-space:nowrap; 
+}
+
+/* consistent field sizes */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select,
+textarea{
+  padding:9px 11px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  width:260px;
+  max-width:100%;
+}
+
+textarea{ min-height:90px; }
+
+/* Buttons */
+button{
+  padding:8px 14px;
+  border-radius:12px;
+  border:1px solid var(--blue2);
+  background:var(--blue);
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+  line-height:1; 
+}
+
+button:hover{ background:var(--blue2); }
+
+/* reset */
+a.button-link{
+  display:inline-block;
+  padding:8px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--silver2);
+  color:var(--text);
+  text-decoration:none;
+  font-weight:900;
+  line-height:1;
+  vertical-align:middle;
+}
+
+a.button-link:hover{ background:var(--silver); }
+
+/* Inline forms inside table */
+form[style*="display:inline"]{
+  background:transparent;
+  border:none;
+  padding:0;
+  margin:0;
+  display:inline;
+  box-shadow:none;
+}
+
+/* Tables */
+table{
+  width:100%;
+  max-width:1050px;
+  margin: 10px auto 0 auto;
+  border-collapse:separate;
+  border-spacing:0;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow: 0 1px 0 var(--shadow);
+}
+
+th{
+  text-align:left;
+  padding:10px 12px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:900;
+  border-bottom:1px solid var(--blue2);
+}
+
+td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--silver2);
+  vertical-align:middle; /* center vertically */
+}
+
+tr:last-child td{ border-bottom:none; }
+
+/* keep action buttons from stretching rows */
+td form button{
+  padding:7px 12px;
+}
+
+/* Responsive: <= 768px (3 changes) */
+@media (max-width: 768px){
+  body{ padding:14px; }
+
+  /* nav */
+  nav{
+    display:block;
+    width:100%;
+    padding:12px 14px;
+  }
+
+  nav a{
+    display:block;
+    margin:0 0 10px 0;
+  }
+
+  /* form stack */
+  .form-label{
+    display:block;
+    width:auto;
+    margin-bottom:5px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea{
+    width:100%;
+  }
+
+  /* table stacked cards */
+  table, tbody, tr, td, th{
+    display:block;
+    width:100%;
+  }
+
+  table tr:first-child{ display:none; }
+
+  tr{
+    margin:0 0 12px 0;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px;
+    background:#fff;
+  }
+
+  td, th{
+    border:none;
+    padding:7px 0;
+  }
+
+  td{
+    vertical-align:top; /* in stacked mode, top is clearer */
+  }
+}
