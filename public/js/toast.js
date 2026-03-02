@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   toast.style.position = "fixed";
   toast.style.left = "50%";
-  toast.style.top = "24px";
+  toast.style.top = "16px";
   toast.style.transform = "translateX(-50%)";
   toast.style.padding = "10px 14px";
   toast.style.border = "1px solid #999";

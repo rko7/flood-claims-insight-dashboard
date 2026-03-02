@@ -4,7 +4,7 @@
   <title>{{ title }}</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body data-toast="{{toastError}}">
   {{> nav}}
 
   <h1>{{ title }}</h1>
@@ -20,7 +20,14 @@
 
     <div class="form-row">
       <label class="form-label">Priority:</label>
-      <input type="number" name="priority" value="{{note.priority}}">
+      <select name="priority">
+        <option value="">-</option>
+        <option value="1" {{#isP1}}selected{{/isP1}}>1: Most important</option>
+        <option value="2" {{#isP2}}selected{{/isP2}}>2: High</option>
+        <option value="3" {{#isP3}}selected{{/isP3}}>3: Medium</option>
+        <option value="4" {{#isP4}}selected{{/isP4}}>4: Low</option>
+        <option value="5" {{#isP5}}selected{{/isP5}}>5: Lowest</option>
+      </select>
     </div>
 
     <div class="form-row">
@@ -30,5 +37,7 @@
 
     <button type="submit">Update Note</button>
   </form>
+
+  <script src="/js/toast.js"></script>
 </body>
 </html>

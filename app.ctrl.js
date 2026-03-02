@@ -317,11 +317,18 @@ app.get("/notes/:id/edit", (req, res) => {
     if (err) return res.status(500).send("DB error");
     if (!note) return res.status(404).send("Note not found");
 
+    const p = note.priority != null ? String(note.priority) : "";
     res.render("editNote", {
       title: "Edit Note",
       message: "Edit page loaded.",
       claimId: claimId,
-      note: note
+      note: note,
+      toastError: "",
+      isP1: p === "1",
+      isP2: p === "2",
+      isP3: p === "3",
+      isP4: p === "4",
+      isP5: p === "5"
     });
   });
 });
@@ -332,9 +339,29 @@ app.post("/notes/update", (req, res) => {
   const noteId = req.body.note_id ? parseInt(req.body.note_id) : null;
   const claimId = (req.body.claim_id || "").trim();
   const noteText = (req.body.note_text || "").trim();
-  const priority = req.body.priority ? parseInt(req.body.priority) : null;
+  const priorityRaw = (req.body.priority || "").trim();
 
-  if (!noteId || !claimId || !noteText) return res.status(400).send("Invalid note");
+  if (!noteId || !claimId) return res.status(400).send("Invalid request");
+
+  // note length 5..300
+  if (noteText.length < 5 || noteText.length > 300) {
+    return renderEditWithToast(res, noteId, claimId, "Note must be 5 to 300 characters.", {
+      note_text: noteText,
+      priorityRaw: priorityRaw
+    });
+  }
+
+  // priority 1..5 (optional)
+  let priority = null;
+  if (priorityRaw !== "") {
+    priority = parseInt(priorityRaw);
+    if (Number.isNaN(priority) || priority < 1 || priority > 5) {
+      return renderEditWithToast(res, noteId, claimId, "Priority must be from 1 to 5.", {
+        note_text: noteText,
+        priorityRaw: priorityRaw
+      });
+    }
+  }
 
   model.updateNote(noteId, noteText, priority, (err) => {
     if (err) return res.status(500).send("DB error");
@@ -419,6 +446,35 @@ function renderHomeWithError(res, errorMessage, formValues) {
       watchlist: rows || [],
       hasError: !!err,
       form: formValues || {}
+    });
+  });
+}
+
+// rerender edit page with toast
+function renderEditWithToast(res, noteId, claimId, toastMessage, form) {
+  model.getNoteById(noteId, (err, note) => {
+    if (err) return res.status(500).send("DB error");
+    if (!note) return res.status(404).send("Note not found");
+
+    // override values with user input
+    const noteText = form && form.note_text != null ? form.note_text : note.note_text;
+    const p = form && form.priorityRaw != null ? String(form.priorityRaw) : (note.priority != null ? String(note.priority) : "");
+
+    res.status(400).render("editNote", {
+      title: "Edit Note",
+      message: "Edit page loaded.",
+      claimId: claimId,
+      toastError: toastMessage,
+      note: {
+        id: note.id,
+        note_text: noteText,
+        priority: p
+      },
+      isP1: p === "1",
+      isP2: p === "2",
+      isP3: p === "3",
+      isP4: p === "4",
+      isP5: p === "5"
     });
   });
 }
