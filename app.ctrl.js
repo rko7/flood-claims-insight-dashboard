@@ -194,44 +194,37 @@ app.get("/claims", async (req, res) => {
     to: (req.query.to || "").trim(),
     minPaid: (req.query.minPaid || "").trim()
   };
-  
   let formError = "";
 
   // date validation
   const fromYmd = filters.from !== "" ? parseYmd(filters.from) : "";
   const toYmd = filters.to !== "" ? parseYmd(filters.to) : "";
-  
   if (filters.from !== "" && !fromYmd) formError = "From date must be in YYYY-MM-DD format.";
   if (!formError && filters.to !== "" && !toYmd) formError = "To date must be in YYYY-MM-DD format.";
   if (!formError && fromYmd && toYmd && fromYmd > toYmd) {
-      formError = "From date must be earlier than or equal to To date.";
+    formError = "From date must be earlier than or equal to To date.";
   }
-  
   const currentYear = new Date().getFullYear();
   const minYear = 1978;
-    
   if (!formError && fromYmd) {
     const y = parseInt(fromYmd.slice(0, 4), 10);
     if (y < minYear || y > currentYear) formError = `From year must be between ${minYear} and ${currentYear}.`;
   }
-  
   if (!formError && toYmd) {
     const y = parseInt(toYmd.slice(0, 4), 10);
     if (y < minYear || y > currentYear) formError = `To year must be between ${minYear} and ${currentYear}.`;
   }
-  
   // minPaid validation (optional)
   if (!formError && filters.minPaid !== "") {
     const min = parseFloat(filters.minPaid);
     if (Number.isNaN(min)) formError = "Min paid must be a number.";
     else if (min < 0) formError = "Min paid must be greater than or equal to 0.";
   }
-  
   const hasFilters =
-  filters.state !== "" ||
-  filters.from !== "" ||
-  filters.to !== "" ||
-  filters.minPaid !== "";
+    filters.state !== "" ||
+    filters.from !== "" ||
+    filters.to !== "" ||
+    filters.minPaid !== "";
 
   // results
   let results = [];
@@ -433,16 +426,24 @@ app.get("/claims/:id", async (req, res) => {
 app.get("/notes", (req, res) => {
   // list all notes
   model.getAllNotes((err, notes) => {
-    const rows = (notes || []).map((n) => ({
-      ...n,
-      priorityLabel: priorityLabel(n.priority),
-      wl_amount:
-        n.wl_amount != null && n.wl_amount !== ""
-          ? Number(n.wl_amount).toFixed(2)
-          : ""
-    }));
+    const rows = (notes || []).map((n) => {
+      const p = n.priority != null ? String(n.priority) : "";
 
-    // table open/close flags
+      return {
+        ...n,
+        wl_amount:
+          n.wl_amount != null && n.wl_amount !== ""
+            ? Number(n.wl_amount).toFixed(2)
+            : "",
+        isP1: p === "1",
+        isP2: p === "2",
+        isP3: p === "3",
+        isP4: p === "4",
+        isP5: p === "5",
+        isNoPriority: p === ""
+      };
+    });
+
     if (rows.length > 0) {
       rows[0].firstRow = true;
       rows[rows.length - 1].lastRow = true;
@@ -721,7 +722,7 @@ app.post("/watchlist/add", (req, res) => {
     }
   }
 
-    if (!isLikelyValidClaimId(claimId)) {
+  if (!isLikelyValidClaimId(claimId)) {
     return renderHomeWithError(res, "Invalid Claim ID format.", {
       claim_id: claimId,
       state: state,
@@ -738,7 +739,7 @@ app.post("/watchlist/add", (req, res) => {
       amount: amountRaw
     });
   }
-  
+
   const item = {
     claim_id: claimId,
     state: state.toUpperCase(),

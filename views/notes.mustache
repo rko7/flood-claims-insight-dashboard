@@ -36,7 +36,14 @@
           {{#wl_amount}} ${{wl_amount}}{{/wl_amount}}
         </td>
 
-        <td>{{priorityLabel}}</td>
+        <td>
+          {{#isP1}}1: Most important{{/isP1}}
+          {{#isP2}}2: High{{/isP2}}
+          {{#isP3}}3: Medium{{/isP3}}
+          {{#isP4}}4: Low{{/isP4}}
+          {{#isP5}}5: Lowest{{/isP5}}
+          {{#isNoPriority}}-{{/isNoPriority}}
+        </td>
         <td>{{note_text}}</td>
         <td>{{created_at}}</td>
         <td>
