@@ -14,11 +14,11 @@
   <h2>{{claim.claimId}}</h2>
 
   <!-- Claim info -->
-  <table border="1" cellpadding="6">
+  <table class="detail-table" border="1" cellpadding="6">
     <tr><th>State</th><td>{{claim.state}}</td></tr>
     <tr><th>Loss Date</th><td>{{claim.lossDate}}</td></tr>
     <tr><th>Year</th><td>{{claim.year}}</td></tr>
-    <tr><th>Paid Amount</th><td>{{claim.paidAmount}}</td></tr>
+    <tr><th>Paid Amount ($)</th><td>{{claim.paidAmount}}</td></tr>
     <tr><th>Source</th><td>{{claim.source}}</td></tr>
   </table>
 
@@ -94,7 +94,8 @@
 
     <div class="form-row">
       <label class="form-label">Note:</label>
-      <textarea name="note_text" rows="4" cols="40" required>{{noteForm.note_text}}</textarea>
+      <textarea name="note_text" rows="4" cols="40" required minlength="5" maxlength="300">{{noteForm.note_text}}</textarea>
+      <small>5 to 300 characters</small>
     </div>
 
     <button type="submit">Save Note</button>

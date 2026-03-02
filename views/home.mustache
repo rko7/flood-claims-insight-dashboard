@@ -4,7 +4,7 @@
   <title>{{ title }}</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body data-state="{{form.state}}">
   {{> nav}}
   
   <h1>{{ title }}</h1>
@@ -62,12 +62,20 @@
   <form method="post" action="/watchlist/add">
     <div class="form-row">
       <label class="form-label">Claim ID:</label>
-      <input type="text" name="claim_id" required value="{{form.claim_id}}">
+      <input
+        type="text"
+        name="claim_id"
+        required
+        minlength="6"
+        maxlength="80"
+        pattern="[A-Za-z0-9-]{6,80}"
+        value="{{form.claim_id}}">
+      <small>Allowed: letters, numbers, hyphen (6 to 80 chars)</small>
     </div>
 
     <div class="form-row">
       <label class="form-label">State:</label>
-      <select name="state" required>
+      <select name="state" id="stateSelectHome" required>
         <option value="">-</option>
         <option value="AL">AL</option>
         <option value="AK">AK</option>
@@ -124,16 +132,25 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Year:</label>
-      <input type="date" name="year" value="{{form.year}}">
+      <label class="form-label">Loss Date:</label>
+      <input type="date" name="year" value="{{form.year}}" min="1978-01-01" max="2100-12-31">
+      <small>This date sets the year.</small>
     </div>
 
     <div class="form-row">
       <label class="form-label">Amount ($):</label>
-      <input type="number" step="0.01" name="amount" value="{{form.amount}}">
+      <input type="number" step="0.01" min="0" name="amount" value="{{form.amount}}">
     </div>
 
     <button type="submit">Add</button>
   </form>
+
+  <script>
+    (function () {
+      var s = document.body.getAttribute("data-state") || "";
+      var el = document.getElementById("stateSelectHome");
+      if (el && s) el.value = s;
+    })();
+  </script>
 </body>
 </html>

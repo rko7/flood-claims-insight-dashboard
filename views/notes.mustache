@@ -9,6 +9,10 @@
 
   <h1>{{ title }}</h1>
 
+  {{#toastError}}
+    <p><strong>Error:</strong> {{ toastError }}</p>
+  {{/toastError}}
+
   <!-- Notes table -->
   {{#notes}}
     {{#firstRow}}

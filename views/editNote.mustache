@@ -8,7 +8,10 @@
   {{> nav}}
 
   <h1>{{ title }}</h1>
-  <p><strong>Message:</strong> {{ message }}</p>
+
+  {{#toastError}}
+    <p><strong>Error:</strong> {{ toastError }}</p>
+  {{/toastError}}
 
   <!-- Back -->
   <p><a href="/claims/{{claimId}}">Back to Details</a></p>
@@ -32,7 +35,8 @@
 
     <div class="form-row">
       <label class="form-label">Note:</label>
-      <textarea name="note_text" rows="4" cols="40" required>{{note.note_text}}</textarea>
+      <textarea name="note_text" rows="4" cols="40" required minlength="5" maxlength="300">{{note.note_text}}</textarea>
+      <small>5 to 300 characters</small>
     </div>
 
     <button type="submit">Update Note</button>

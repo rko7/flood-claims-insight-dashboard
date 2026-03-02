@@ -40,6 +40,29 @@ function buildNoteForm(priorityRaw, noteText) {
     selected5: p === "5" ? "selected" : ""
   };
 }
+// state validation
+function isValidState2(stateRaw) {
+  const s = (stateRaw || "").trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(s);
+}
+// date validation
+function parseYmd(s) {
+  const v = (s || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
+  const d = new Date(v + "T00:00:00Z");
+  if (Number.isNaN(d.getTime())) return null;
+  const [yy, mm, dd] = v.split("-").map((x) => parseInt(x, 10));
+  if (d.getUTCFullYear() !== yy || d.getUTCMonth() + 1 !== mm || d.getUTCDate() !== dd) return null;
+  return v;
+}
+// claim ID validation
+function isLikelyValidClaimId(claimIdRaw) {
+  const id = (claimIdRaw || "").trim();
+  if (/^demo-\d{3}$/i.test(id)) return true;
+  return /^[A-Za-z0-9-]{6,80}$/.test(id);
+}
+
+
 
 // GET json
 function getJson(url) {
@@ -164,12 +187,44 @@ app.get("/claims", async (req, res) => {
     to: (req.query.to || "").trim(),
     minPaid: (req.query.minPaid || "").trim()
   };
+  
+  let formError = "";
 
+  // date validation
+  const fromYmd = filters.from !== "" ? parseYmd(filters.from) : "";
+  const toYmd = filters.to !== "" ? parseYmd(filters.to) : "";
+  
+  if (filters.from !== "" && !fromYmd) formError = "From date must be in YYYY-MM-DD format.";
+  if (!formError && filters.to !== "" && !toYmd) formError = "To date must be in YYYY-MM-DD format.";
+  if (!formError && fromYmd && toYmd && fromYmd > toYmd) {
+      formError = "From date must be earlier than or equal to To date.";
+  }
+  
+  const currentYear = new Date().getFullYear();
+  const minYear = 1978;
+    
+  if (!formError && fromYmd) {
+    const y = parseInt(fromYmd.slice(0, 4), 10);
+    if (y < minYear || y > currentYear) formError = `From year must be between ${minYear} and ${currentYear}.`;
+  }
+  
+  if (!formError && toYmd) {
+    const y = parseInt(toYmd.slice(0, 4), 10);
+    if (y < minYear || y > currentYear) formError = `To year must be between ${minYear} and ${currentYear}.`;
+  }
+  
+  // minPaid validation (optional)
+  if (!formError && filters.minPaid !== "") {
+    const min = parseFloat(filters.minPaid);
+    if (Number.isNaN(min)) formError = "Min paid must be a number.";
+    else if (min < 0) formError = "Min paid must be greater than or equal to 0.";
+  }
+  
   const hasFilters =
-    filters.state !== "" ||
-    filters.from !== "" ||
-    filters.to !== "" ||
-    filters.minPaid !== "";
+  filters.state !== "" ||
+  filters.from !== "" ||
+  filters.to !== "" ||
+  filters.minPaid !== "";
 
   // results
   let results = [];
@@ -177,6 +232,17 @@ app.get("/claims", async (req, res) => {
 
   if (hasFilters) {
     // Build OpenFEMA filter
+    if (formError) {
+      return res.status(400).render("claims", {
+        title: "Claims Explorer",
+        filters,
+        hasFilters,
+        hasResults: false,
+        results: [],
+        toastError: formError
+      });
+    }
+
     const parts = [];
 
     if (filters.state !== "") {
@@ -648,9 +714,27 @@ app.post("/watchlist/add", (req, res) => {
     }
   }
 
+    if (!isLikelyValidClaimId(claimId)) {
+    return renderHomeWithError(res, "Invalid Claim ID format.", {
+      claim_id: claimId,
+      state: state,
+      year: yearRaw,
+      amount: amountRaw
+    });
+  }
+
+  if (!isValidState2(state)) {
+    return renderHomeWithError(res, "State must be a 2-letter code.", {
+      claim_id: claimId,
+      state: state,
+      year: yearRaw,
+      amount: amountRaw
+    });
+  }
+  
   const item = {
     claim_id: claimId,
-    state: state,
+    state: state.toUpperCase(),
     year: year,
     amount: amount,
     source: req.body.source || "manual"
@@ -664,13 +748,21 @@ app.post("/watchlist/add", (req, res) => {
 
 // rerender home with error
 function renderHomeWithError(res, errorMessage, formValues) {
+  const safeForm = formValues || {};
+  let y = safeForm.year != null ? String(safeForm.year).trim() : "";
+
+  if (/^\d{4}$/.test(y)) y = `${y}-01-01`;
+
   model.getAllWatchlist((err, rows) => {
     res.status(400).render("home", {
       title: "Flood Claims Insight Dashboard (FCID)",
       error: errorMessage,
       watchlist: rows || [],
       hasError: !!err,
-      form: formValues || {}
+      form: {
+        ...safeForm,
+        year: y
+      }
     });
   });
 }
