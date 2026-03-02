@@ -17,6 +17,29 @@ app.use(express.static("public"));
 // parse form data
 app.use(express.urlencoded({ extended: false }));
 
+function priorityLabel(p) {
+  if (p === 1) return "1: Most important";
+  if (p === 2) return "2: High";
+  if (p === 3) return "3: Medium";
+  if (p === 4) return "4: Low";
+  if (p === 5) return "5: Lowest";
+  return "-";
+}
+
+// note form state
+function buildNoteForm(priorityRaw, noteText) {
+  const p = (priorityRaw || "").trim();
+
+  return {
+    note_text: noteText || "",
+    selected1: p === "1" ? "selected" : "",
+    selected2: p === "2" ? "selected" : "",
+    selected3: p === "3" ? "selected" : "",
+    selected4: p === "4" ? "selected" : "",
+    selected5: p === "5" ? "selected" : ""
+  };
+}
+
 // home
 app.get("/", (req, res) => {
   model.getAllWatchlist((err, rows) => {
@@ -117,14 +140,26 @@ app.get("/claims/:id", (req, res) => {
   }
 
   // watchlist lookup
-  const loadNotesAndRender = (claimDetails) => {
+  const loadNotesAndRender = (claimDetails, toastError, noteForm) => {
     model.getNotesByClaimId(id, (err, notes) => {
+      const rows = (notes || []).map((n) => ({
+        ...n,
+        priorityLabel: priorityLabel(n.priority)
+      }));
+
+      if (rows.length > 0) {
+        rows[0].firstNote = true;
+        rows[rows.length - 1].lastNote = true;
+      }
+
       res.render("claimDetails", {
         title: "Claim Details",
         message: "Details page loaded.",
         claim: claimDetails,
-        notes: notes || [],
-        hasNotesError: !!err
+        notes: rows,
+        hasNotesError: !!err,
+        toastError: toastError || "",
+        noteForm: noteForm || buildNoteForm("", "")
       });
     });
   };
@@ -168,9 +203,22 @@ app.get("/notes", (req, res) => {
 app.post("/notes/add", (req, res) => {
   const claimId = (req.body.claim_id || "").trim();
   const noteText = (req.body.note_text || "").trim();
-  const priority = req.body.priority ? parseInt(req.body.priority) : null;
+  const priorityRaw = (req.body.priority || "").trim();
 
-  if (!claimId || !noteText) return res.status(400).send("Invalid note");
+  if (!claimId) return res.status(400).send("Invalid request");
+
+  // note 5 to 300 char
+  if (noteText.length < 5 || noteText.length > 300) {
+    return renderDetailsWithToast(res, claimId, "Note must be 5 to 300 characters.", buildNoteForm(priorityRaw, noteText));
+  }
+  // priority 1 to 5
+  let priority = null;
+  if (priorityRaw !== "") {
+    priority = parseInt(priorityRaw);
+    if (Number.isNaN(priority) || priority < 1 || priority > 5) {
+      return renderDetailsWithToast(res, claimId, "Priority must be from 1 to 5.", buildNoteForm(priorityRaw, noteText));
+    }
+  }
 
   model.addNote(
     { claim_id: claimId, note_text: noteText, priority: priority },
@@ -180,6 +228,68 @@ app.post("/notes/add", (req, res) => {
     }
   );
 });
+
+function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
+  const renderWithDetails = (claimDetails) => {
+    model.getNotesByClaimId(claimId, (err, notes) => {
+      const rows = (notes || []).map((n) => ({
+        ...n,
+        priorityLabel: priorityLabel(n.priority)
+      }));
+
+      if (rows.length > 0) {
+        rows[0].firstNote = true;
+        rows[rows.length - 1].lastNote = true;
+      }
+
+      res.status(400).render("claimDetails", {
+        title: "Claim Details",
+        message: "Details page loaded.",
+        claim: claimDetails,
+        notes: rows,
+        hasNotesError: !!err,
+        toastError: toastMessage,
+        noteForm: noteForm || buildNoteForm("", "")
+      });
+    });
+  };
+
+  if (claimId === "demo-001") {
+    return renderWithDetails({
+      claimId: "demo-001",
+      state: "FL",
+      lossDate: "2026-01-15",
+      year: 2026,
+      paidAmount: "1000.00",
+      source: "demo"
+    });
+  }
+
+  if (claimId === "demo-002") {
+    return renderWithDetails({
+      claimId: "demo-002",
+      state: "FL",
+      lossDate: "2026-02-01",
+      year: 2026,
+      paidAmount: "2500.00",
+      source: "demo"
+    });
+  }
+
+  model.getWatchlistByClaimId(claimId, (err, row) => {
+    if (err) return res.status(500).send("DB error");
+    if (!row) return res.status(404).send("Claim not found");
+
+    renderWithDetails({
+      claimId: row.claim_id,
+      state: row.state || "",
+      lossDate: "",
+      year: row.year || "",
+      paidAmount: row.amount != null ? Number(row.amount).toFixed(2) : "",
+      source: row.source || "watchlist"
+    });
+  });
+}
 
 // delete note
 app.post("/notes/delete", (req, res) => {
@@ -264,7 +374,7 @@ app.post("/watchlist/add", (req, res) => {
   if (yearRaw !== "") {
     year = parseInt(yearRaw);
     if (Number.isNaN(year) || year < 1900 || year > 2100) {
-      return renderHomeWithError(res, "Invalid year.", {
+      return renderHomeWithError(res, "Invalid Year.", {
         claim_id: claimId,
         state: state,
         year: yearRaw,

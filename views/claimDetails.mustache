@@ -4,32 +4,25 @@
   <title>{{ title }}</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body data-toast="{{toastError}}">
   {{> nav}}
 
   <h1>{{ title }}</h1>
   <p><strong>Message:</strong> {{ message }}</p>
 
-  {{#warning}}
-    <p><strong>Warning:</strong> {{ warning }}</p>
-  {{/warning}}
-
-  {{#error}}
-    <p><strong>Error:</strong> {{ error }}</p>
-  {{/error}}
-
-  <!-- Navigation -->
   <p><a href="/claims">Back to Claims</a></p>
 
-  <!-- Claim info -->
   <h2>{{claim.claimId}}</h2>
-  <div>State: {{claim.state}}</div>
-  <div>Loss Date: {{claim.lossDate}}</div>
-  <div>Year: {{claim.year}}</div>
-  <div>Paid Amount: {{claim.paidAmount}}</div>
-  <div>Source: {{claim.source}}</div>
 
-  <!-- Notes -->
+  <!-- Claim info -->
+  <table border="1" cellpadding="6">
+    <tr><th>State</th><td>{{claim.state}}</td></tr>
+    <tr><th>Loss Date</th><td>{{claim.lossDate}}</td></tr>
+    <tr><th>Year</th><td>{{claim.year}}</td></tr>
+    <tr><th>Paid Amount</th><td>{{claim.paidAmount}}</td></tr>
+    <tr><th>Source</th><td>{{claim.source}}</td></tr>
+  </table>
+
   <h2>Notes</h2>
 
   {{#hasNotesError}}
@@ -37,17 +30,38 @@
   {{/hasNotesError}}
 
   {{#notes}}
-    <div>
-      ({{priority}}) {{note_text}} - {{created_at}}
+    <!-- Notes table -->
+    {{#firstNote}}
+    <table border="1" cellpadding="6">
+      <tr>
+        <th>Priority</th>
+        <th>Note</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    {{/firstNote}}
 
-      <a href="/notes/{{id}}/edit?claim_id={{claim.claimId}}">Edit</a>
+      <tr>
+        <td>{{priorityLabel}}</td>
+        <td>{{note_text}}</td>
+        <td>{{created_at}}</td>
+        <td>
+          <form method="get" action="/notes/{{id}}/edit" style="display:inline;">
+            <input type="hidden" name="claim_id" value="{{claim.claimId}}">
+            <button type="submit">Edit</button>
+          </form>
 
-      <form method="post" action="/notes/delete" style="display:inline;">
-        <input type="hidden" name="claim_id" value="{{claim.claimId}}">
-        <input type="hidden" name="note_id" value="{{id}}">
-        <button type="submit">Delete</button>
-      </form>
-    </div>
+          <form method="post" action="/notes/delete" style="display:inline;">
+            <input type="hidden" name="claim_id" value="{{claim.claimId}}">
+            <input type="hidden" name="note_id" value="{{id}}">
+            <button type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+
+    {{#lastNote}}
+    </table>
+    {{/lastNote}}
   {{/notes}}
 
   {{^notes}}
@@ -56,20 +70,30 @@
 
   <!-- Add note -->
   <h2>Add Note</h2>
+
   <form method="post" action="/notes/add">
     <input type="hidden" name="claim_id" value="{{claim.claimId}}">
 
     <div class="form-row">
       <label class="form-label">Priority:</label>
-      <input type="number" name="priority">
+      <select name="priority">
+        <option value="">-</option>
+        <option value="1" {{noteForm.selected1}}>1: Most important</option>
+        <option value="2" {{noteForm.selected2}}>2: High</option>
+        <option value="3" {{noteForm.selected3}}>3: Medium</option>
+        <option value="4" {{noteForm.selected4}}>4: Low</option>
+        <option value="5" {{noteForm.selected5}}>5: Lowest</option>
+      </select>
     </div>
 
     <div class="form-row">
       <label class="form-label">Note:</label>
-      <textarea name="note_text" rows="4" cols="40" required></textarea>
+      <textarea name="note_text" rows="4" cols="40" required>{{noteForm.note_text}}</textarea>
     </div>
 
     <button type="submit">Save Note</button>
   </form>
+
+  <script src="/js/toast.js"></script>
 </body>
 </html>
