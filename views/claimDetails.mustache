@@ -41,7 +41,14 @@
     {{/firstNote}}
 
       <tr>
-        <td>{{priorityLabel}}</td>
+        <td>
+          {{#isP1}}1: Most important{{/isP1}}
+          {{#isP2}}2: High{{/isP2}}
+          {{#isP3}}3: Medium{{/isP3}}
+          {{#isP4}}4: Low{{/isP4}}
+          {{#isP5}}5: Lowest{{/isP5}}
+          {{#isNoPriority}}-{{/isNoPriority}}
+        </td>
         <td>{{note_text}}</td>
         <td>{{created_at}}</td>
         <td>
@@ -89,7 +96,6 @@
       <label class="form-label">Note:</label>
       <textarea name="note_text" rows="4" cols="40" required>{{noteForm.note_text}}</textarea>
     </div>
-  // watchlist lookup
 
     <button type="submit">Save Note</button>
   </form>

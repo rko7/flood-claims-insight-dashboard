@@ -239,9 +239,8 @@ app.get("/claims", async (req, res) => {
   });
 });
 
-// claim deno details
-app.get("/claims/:id", (req, res) => {
-  // demo only
+// claim details
+app.get("/claims/:id", async (req, res) => {
   const id = req.params.id;
 
   let details = null;
@@ -265,13 +264,21 @@ app.get("/claims/:id", (req, res) => {
     };
   }
 
-  // watchlist lookup
+  // load notes + render details
   const loadNotesAndRender = (claimDetails, toastError, noteForm) => {
     model.getNotesByClaimId(id, (err, notes) => {
-      const rows = (notes || []).map((n) => ({
-        ...n,
-        priorityLabel: priorityLabel(n.priority)
-      }));
+      const rows = (notes || []).map((n) => {
+        const p = n.priority != null ? String(n.priority) : "";
+        return {
+          ...n,
+          isP1: p === "1",
+          isP2: p === "2",
+          isP3: p === "3",
+          isP4: p === "4",
+          isP5: p === "5",
+          isNoPriority: p === ""
+        };
+      });
 
       if (rows.length > 0) {
         rows[0].firstNote = true;
@@ -289,25 +296,63 @@ app.get("/claims/:id", (req, res) => {
     });
   };
 
+  // demo
   if (details) {
     return loadNotesAndRender(details);
   }
 
   // watchlist fallback
-  model.getWatchlistByClaimId(id, (err, row) => {
+  model.getWatchlistByClaimId(id, async (err, row) => {
     if (err) return res.status(500).send("DB error");
-    if (!row) return res.status(404).send("Claim not found");
 
-    const claimDetails = {
-      claimId: row.claim_id,
-      state: row.state || "",
-      lossDate: "",
-      year: row.year || "",
-      paidAmount: row.amount != null ? Number(row.amount).toFixed(2) : "",
-      source: row.source || "watchlist"
-    };
+    if (row) {
+      const claimDetails = {
+        claimId: row.claim_id,
+        state: row.state || "",
+        lossDate: "",
+        year: row.year || "",
+        paidAmount: row.amount != null ? Number(row.amount).toFixed(2) : "",
+        source: row.source || "watchlist"
+      };
+      return loadNotesAndRender(claimDetails);
+    }
 
-    loadNotesAndRender(claimDetails);
+    // OpenFEMA lookup by id
+    try {
+      const base = "https://www.fema.gov/api/open/v2/FimaNfipClaims";
+      const filter = `(id eq '${id}')`;
+      const url = `${base}?$top=1&$filter=${encodeURIComponent(filter)}`;
+
+      const json = await getJson(url);
+      const arr = pickFirstArray(json);
+      const r = arr && arr.length > 0 ? arr[0] : null;
+
+      if (!r) return res.status(404).send("Claim not found");
+
+      const buildingPaid = Number(r.amountPaidOnBuildingClaim || 0);
+      const contentsPaid = Number(r.amountPaidOnContentsClaim || 0);
+      const iccPaid = Number(r.amountPaidOnIncreasedCostOfComplianceClaim || 0);
+
+      let paidAmount = 0;
+      if (Number.isFinite(buildingPaid)) paidAmount += buildingPaid;
+      if (Number.isFinite(contentsPaid)) paidAmount += contentsPaid;
+      if (Number.isFinite(iccPaid)) paidAmount += iccPaid;
+
+      const lossDate = r.dateOfLoss ? String(r.dateOfLoss).slice(0, 10) : "";
+
+      const claimDetails = {
+        claimId: String(r.id || id),
+        state: r.state || "",
+        lossDate: lossDate,
+        year: r.yearOfLoss || "",
+        paidAmount: Number(paidAmount).toFixed(2),
+        source: "openfema"
+      };
+
+      return loadNotesAndRender(claimDetails);
+    } catch (e2) {
+      return res.status(500).send("API error");
+    }
   });
 });
 
@@ -371,10 +416,18 @@ app.post("/notes/add", (req, res) => {
 function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
   const renderWithDetails = (claimDetails) => {
     model.getNotesByClaimId(claimId, (err, notes) => {
-      const rows = (notes || []).map((n) => ({
-        ...n,
-        priorityLabel: priorityLabel(n.priority)
-      }));
+      const rows = (notes || []).map((n) => {
+        const p = n.priority != null ? String(n.priority) : "";
+        return {
+          ...n,
+          isP1: p === "1",
+          isP2: p === "2",
+          isP3: p === "3",
+          isP4: p === "4",
+          isP5: p === "5",
+          isNoPriority: p === ""
+        };
+      });
 
       if (rows.length > 0) {
         rows[0].firstNote = true;
@@ -414,18 +467,54 @@ function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
     });
   }
 
-  model.getWatchlistByClaimId(claimId, (err, row) => {
+  model.getWatchlistByClaimId(claimId, async (err, row) => {
     if (err) return res.status(500).send("DB error");
-    if (!row) return res.status(404).send("Claim not found");
 
-    renderWithDetails({
-      claimId: row.claim_id,
-      state: row.state || "",
-      lossDate: "",
-      year: row.year || "",
-      paidAmount: row.amount != null ? Number(row.amount).toFixed(2) : "",
-      source: row.source || "watchlist"
-    });
+    if (row) {
+      return renderWithDetails({
+        claimId: row.claim_id,
+        state: row.state || "",
+        lossDate: "",
+        year: row.year || "",
+        paidAmount: row.amount != null ? Number(row.amount).toFixed(2) : "",
+        source: row.source || "watchlist"
+      });
+    }
+
+    // OpenFEMA lookup
+    try {
+      const base = "https://www.fema.gov/api/open/v2/FimaNfipClaims";
+      const filter = `(id eq '${claimId}')`;
+      const url = `${base}?$top=1&$filter=${encodeURIComponent(filter)}`;
+
+      const json = await getJson(url);
+      const arr = pickFirstArray(json);
+      const r = arr && arr.length > 0 ? arr[0] : null;
+
+      if (!r) return res.status(404).send("Claim not found");
+
+      const buildingPaid = Number(r.amountPaidOnBuildingClaim || 0);
+      const contentsPaid = Number(r.amountPaidOnContentsClaim || 0);
+      const iccPaid = Number(r.amountPaidOnIncreasedCostOfComplianceClaim || 0);
+
+      let paidAmount = 0;
+      if (Number.isFinite(buildingPaid)) paidAmount += buildingPaid;
+      if (Number.isFinite(contentsPaid)) paidAmount += contentsPaid;
+      if (Number.isFinite(iccPaid)) paidAmount += iccPaid;
+
+      const lossDate = r.dateOfLoss ? String(r.dateOfLoss).slice(0, 10) : "";
+
+      return renderWithDetails({
+        claimId: String(r.id || claimId),
+        state: r.state || "",
+        lossDate: lossDate,
+        year: r.yearOfLoss || "",
+        paidAmount: Number(paidAmount).toFixed(2),
+        source: "openfema"
+      });
+    } catch (e2) {
+      return res.status(500).send("API error");
+    }
   });
 }
 
