@@ -170,9 +170,16 @@ function mapToClaimRow(r, fallbackState) {
 // home
 app.get("/", (req, res) => {
   model.getAllWatchlist((err, rows) => {
+    const list = rows || [];
+
+    if (list.length > 0) {
+      list[0].firstRow = true;
+      list[list.length - 1].lastRow = true;
+    }
+
     res.render("home", {
       title: "Flood Claims Insight Dashboard (FCID)",
-      watchlist: rows || [],
+      watchlist: list,
       hasError: !!err
     });
   });
@@ -750,14 +757,20 @@ app.post("/watchlist/add", (req, res) => {
 function renderHomeWithError(res, errorMessage, formValues) {
   const safeForm = formValues || {};
   let y = safeForm.year != null ? String(safeForm.year).trim() : "";
-
   if (/^\d{4}$/.test(y)) y = `${y}-01-01`;
 
   model.getAllWatchlist((err, rows) => {
+    const list = rows || [];
+
+    if (list.length > 0) {
+      list[0].firstRow = true;
+      list[list.length - 1].lastRow = true;
+    }
+
     res.status(400).render("home", {
       title: "Flood Claims Insight Dashboard (FCID)",
       error: errorMessage,
-      watchlist: rows || [],
+      watchlist: list,
       hasError: !!err,
       form: {
         ...safeForm,

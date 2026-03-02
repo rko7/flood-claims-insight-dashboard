@@ -15,7 +15,7 @@
 body{
   font-family: Arial, sans-serif;
   margin:0;
-  padding:20px; /* prevents clipping */
+  padding:20px; 
   color:var(--text);
   background:var(--silver);
 }
@@ -28,7 +28,7 @@ body > h2,
 body > p,
 body > form,
 body > table{
-  max-width: 1050px;  /* reduce overall width */
+  max-width: 1050px;  
   margin-left:auto;
   margin-right:auto;
 }
@@ -176,12 +176,11 @@ th{
 td{
   padding:10px 12px;
   border-bottom:1px solid var(--silver2);
-  vertical-align:middle; /* center vertically */
+  vertical-align:middle; 
 }
 
 tr:last-child td{ border-bottom:none; }
 
-/* keep action buttons from stretching rows */
 td form button{
   padding:7px 12px;
 }
@@ -218,14 +217,18 @@ td form button{
   }
 
   /* table stacked cards */
-  table, tbody, tr, td, th{
+  .stack-table,
+  .stack-table tbody,
+  .stack-table tr,
+  .stack-table td,
+  .stack-table th{
     display:block;
     width:100%;
   }
 
-  table tr:first-child{ display:none; }
+  .stack-table tr:first-child{ display:none; }
 
-  tr{
+  .stack-table tr{
     margin:0 0 12px 0;
     border:1px solid var(--border);
     border-radius:12px;
@@ -233,12 +236,13 @@ td form button{
     background:#fff;
   }
 
-  td, th{
+  .stack-table td,
+  .stack-table th{
     border:none;
     padding:7px 0;
   }
 
-  td{
-    vertical-align:top; /* in stacked mode, top is clearer */
+  .stack-table td{
+    vertical-align:top;
   }
 }
