@@ -61,6 +61,31 @@ nav a{
 
 nav a:last-child{ margin-right:0; }
 
+.site-nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.nav-brand .brand-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+}
+
+.brand-logo{
+  width:36px;
+  height:36px;
+  display:block;
+}
+
+.brand-text{
+  font-weight:900;
+  color:var(--blue);
+}
+
 /* Forms */     
 form{
   background:#fff;
@@ -188,6 +213,9 @@ td form button{
 /* Responsive: <= 768px (3 changes) */
 @media (max-width: 768px){
   body{ padding:14px; }
+
+  .site-nav{ flex-direction:column; align-items:flex-start; }
+  .nav-links a{ margin:0 0 10px 0; }
 
   /* nav */
   nav{
