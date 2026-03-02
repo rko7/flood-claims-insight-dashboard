@@ -1,6 +1,7 @@
 const express = require("express");
 const mustacheExpress = require("mustache-express");
 const path = require("path");
+const https = require("https"); // API calls
 const model = require("./models/app.model");
 
 const app = express();
@@ -40,6 +41,109 @@ function buildNoteForm(priorityRaw, noteText) {
   };
 }
 
+// GET json
+function getJson(url) {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => {
+          if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      })
+      .on("error", reject);
+  });
+}
+
+// pick first array from OpenFEMA
+function pickFirstArray(json) {
+  if (!json || typeof json !== "object") return [];
+  for (const k of Object.keys(json)) {
+    if (Array.isArray(json[k])) return json[k];
+  }
+  return [];
+}
+
+// mapping for claim-like rows
+function mapToClaimRow(r, fallbackState) {
+  const claimId =
+    r.claimId ||
+    r.claimID ||
+    r.claimNumber ||
+    r.claimNo ||
+    r.transactionId ||
+    r.id ||
+    r.recordId ||
+    r.propertyId ||
+    r.propertyID ||
+    "nfip-unknown";
+
+  // state field
+  const state =
+    r.state ||
+    r.stateAbbreviation ||
+    r.stateCode ||
+    fallbackState ||
+    "";
+
+  // date field
+  const lossDate =
+    r.lossDate ||
+    r.dateOfLoss ||
+    r.loss_date ||
+    r.eventDate ||
+    "";
+
+  const year =
+    r.yearOfLoss ||
+    r.lossYear ||
+    r.year ||
+    (typeof lossDate === "string" && lossDate.length >= 4 ? lossDate.slice(0, 4) : "");
+
+  // Paid amount key (OpenFEMA NFIP Claims)
+  const buildingPaid = Number(r.amountPaidOnBuildingClaim || 0);
+  const contentsPaid = Number(r.amountPaidOnContentsClaim || 0);
+  const iccPaid = Number(r.amountPaidOnIncreasedCostOfComplianceClaim || 0);
+
+  let paidAmount = 0;
+  if (Number.isFinite(buildingPaid)) paidAmount += buildingPaid;
+  if (Number.isFinite(contentsPaid)) paidAmount += contentsPaid;
+  if (Number.isFinite(iccPaid)) paidAmount += iccPaid;
+
+  // fallback for other shapes (kept, but primary should cover OpenFEMA)
+  if (paidAmount === 0) {
+    const paidRaw =
+      r.paidAmount ||
+      r.amountPaid ||
+      r.totalAmountPaid ||
+      r.totalPaid ||
+      r.totalBuildingPaymentAmount ||
+      r.totalContentsPaymentAmount ||
+      r.netBuildingPaymentAmount ||
+      r.netContentsPaymentAmount ||
+      r.netIccPaymentAmount ||
+      r.amount ||
+      0;
+
+    const paid = Number(paidRaw);
+    paidAmount = Number.isFinite(paid) ? paid : 0;
+  }
+
+  return {
+    claimId: String(claimId),
+    state: String(state),
+    lossDate: lossDate ? String(lossDate).slice(0, 10) : "",
+    year: year,
+    paidAmount: paidAmount
+  };
+}
+
 // home
 app.get("/", (req, res) => {
   model.getAllWatchlist((err, rows) => {
@@ -52,10 +156,10 @@ app.get("/", (req, res) => {
 });
 
 // claims explorer
-app.get("/claims", (req, res) => {
+app.get("/claims", async (req, res) => {
   // read filters
   const filters = {
-    state: (req.query.state || "").trim(),
+    state: (req.query.state || "").trim().toUpperCase(),
     from: (req.query.from || "").trim(),
     to: (req.query.to || "").trim(),
     minPaid: (req.query.minPaid || "").trim()
@@ -67,47 +171,71 @@ app.get("/claims", (req, res) => {
     filters.to !== "" ||
     filters.minPaid !== "";
 
-  // demo results
+  // results
   let results = [];
-  if (hasFilters) {
-    results = [
-      {
-        claimId: "demo-001",
-        state: filters.state || "FL",
-        lossDate: "2026-01-15",
-        year: 2026,
-        paidAmount: 1000.0
-      },
-      {
-        claimId: "demo-002",
-        state: filters.state || "FL",
-        lossDate: "2026-02-01",
-        year: 2026,
-        paidAmount: 2500.0
-      }
-    ];
+  let toastError = "";
 
-    // apply minPaid filter
-    if (filters.minPaid !== "") {
-      const min = parseFloat(filters.minPaid);
-      if (!Number.isNaN(min)) {
-        results = results.filter((r) => r.paidAmount >= min);
+  if (hasFilters) {
+    // Build OpenFEMA filter
+    const parts = [];
+
+    if (filters.state !== "") {
+      parts.push(`(state eq '${filters.state}')`);
+    }
+
+    // use year range derived from from/to (YYYY-MM-DD)
+    const fromYear = filters.from && filters.from.length >= 4 ? parseInt(filters.from.slice(0, 4)) : null;
+    const toYear = filters.to && filters.to.length >= 4 ? parseInt(filters.to.slice(0, 4)) : null;
+
+    // claims yearOfLoss try
+    const yearFilterParts = [];
+    if (fromYear && !Number.isNaN(fromYear)) yearFilterParts.push(`(yearOfLoss ge ${fromYear})`);
+    if (toYear && !Number.isNaN(toYear)) yearFilterParts.push(`(yearOfLoss le ${toYear})`);
+
+    const baseFilter = parts.length > 0 ? parts.join(" and ") : "";
+    const yearFilter = yearFilterParts.length > 0 ? yearFilterParts.join(" and ") : "";
+
+    const primaryBase = "https://www.fema.gov/api/open/v2/FimaNfipClaims";
+    const topN = 25;
+
+    let primaryUrl = `${primaryBase}?$top=${topN}`;
+    if (baseFilter || yearFilter) {
+      const combined = [baseFilter, yearFilter].filter(Boolean).join(" and ");
+      if (combined) primaryUrl += `&$filter=${encodeURIComponent(combined)}`;
+    }
+
+    try {
+      const json = await getJson(primaryUrl);
+      const arr = pickFirstArray(json);
+
+      results = (arr || []).map((r) => mapToClaimRow(r, filters.state));
+
+      // apply minPaid filter
+      if (filters.minPaid !== "") {
+        const min = parseFloat(filters.minPaid);
+        if (!Number.isNaN(min)) {
+          results = results.filter((r) => r.paidAmount >= min);
+        }
       }
+
+      // format paidAmount for display
+      results = results.map((r) => ({
+        ...r,
+        paidAmount: Number(r.paidAmount).toFixed(2)
+      }));
+    } catch (e1) {
+      toastError = "OpenFEMA is unavailable right now. Please try again.";
+      results = [];
     }
   }
-
-  // format paidAmount for display
-  results = results.map((r) => ({
-    ...r,
-    paidAmount: r.paidAmount.toFixed(2)
-  }));
 
   res.render("claims", {
     title: "Claims Explorer",
     filters: filters,
     hasFilters: hasFilters,
     hasResults: results.length > 0,
-    results: results
+    results: results,
+    toastError: toastError
   });
 });
 
