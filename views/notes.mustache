@@ -4,27 +4,50 @@
   <title>{{ title }}</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body data-toast="{{toastError}}">
   {{> nav}}
 
   <h1>{{ title }}</h1>
-  <p><strong>Message:</strong> {{ message }}</p>
 
-  {{#hasNotesError}}
-    <p>Error loading notes.</p>
-  {{/hasNotesError}}
-
-  <!-- Notes list -->
+  <!-- Notes table -->
   {{#notes}}
-    <div>
-      <a href="/claims/{{claim_id}}">{{claim_id}}</a>
-      - {{wl_state}} {{wl_year}} {{wl_amount}}
-      - ({{priority}}) {{note_text}} - {{created_at}}
-    </div>
+    {{#firstRow}}
+    <table border="1" cellpadding="6">
+      <tr>
+        <th>Claim ID</th>
+        <th>Watchlist</th>
+        <th>Priority</th>
+        <th>Note</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    {{/firstRow}}
+
+      <tr>
+        <td><a href="/claims/{{claim_id}}">{{claim_id}}</a></td>
+        <td>{{wl_state}} {{wl_year}} {{wl_amount}}</td>
+        <td>{{priorityLabel}}</td>
+        <td>{{note_text}}</td>
+        <td>{{created_at}}</td>
+        <td>
+          <a href="/notes/{{id}}/edit?claim_id={{claim_id}}">Edit</a>
+          <form method="post" action="/notes/delete" style="display:inline;">
+            <input type="hidden" name="claim_id" value="{{claim_id}}">
+            <input type="hidden" name="note_id" value="{{id}}">
+            <button type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+
+    {{#lastRow}}
+    </table>
+    {{/lastRow}}
   {{/notes}}
 
   {{^notes}}
     <p>No notes yet.</p>
   {{/notes}}
+
+  <script src="/js/toast.js"></script>
 </body>
 </html>

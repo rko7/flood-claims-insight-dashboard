@@ -45,7 +45,6 @@ app.get("/", (req, res) => {
   model.getAllWatchlist((err, rows) => {
     res.render("home", {
       title: "Flood Claims Insight Dashboard (FCID)",
-      message: "Home page loaded.",
       watchlist: rows || [],
       hasError: !!err
     });
@@ -105,7 +104,6 @@ app.get("/claims", (req, res) => {
 
   res.render("claims", {
     title: "Claims Explorer",
-    message: "Claims page loaded.",
     filters: filters,
     hasFilters: hasFilters,
     hasResults: results.length > 0,
@@ -154,7 +152,6 @@ app.get("/claims/:id", (req, res) => {
 
       res.render("claimDetails", {
         title: "Claim Details",
-        message: "Details page loaded.",
         claim: claimDetails,
         notes: rows,
         hasNotesError: !!err,
@@ -190,11 +187,25 @@ app.get("/claims/:id", (req, res) => {
 app.get("/notes", (req, res) => {
   // list all notes
   model.getAllNotes((err, notes) => {
+    const rows = (notes || []).map((n) => ({
+      ...n,
+      priorityLabel: priorityLabel(n.priority),
+      wl_amount:
+        n.wl_amount != null && n.wl_amount !== ""
+          ? Number(n.wl_amount).toFixed(2)
+          : ""
+    }));
+
+    // table open/close flags
+    if (rows.length > 0) {
+      rows[0].firstRow = true;
+      rows[rows.length - 1].lastRow = true;
+    }
+
     res.render("notes", {
       title: "Notes",
-      message: "Notes page loaded.",
-      notes: notes || [],
-      hasNotesError: !!err
+      notes: rows,
+      toastError: err ? "Error loading notes." : ""
     });
   });
 });
@@ -244,7 +255,6 @@ function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
 
       res.status(400).render("claimDetails", {
         title: "Claim Details",
-        message: "Details page loaded.",
         claim: claimDetails,
         notes: rows,
         hasNotesError: !!err,
@@ -320,7 +330,6 @@ app.get("/notes/:id/edit", (req, res) => {
     const p = note.priority != null ? String(note.priority) : "";
     res.render("editNote", {
       title: "Edit Note",
-      message: "Edit page loaded.",
       claimId: claimId,
       note: note,
       toastError: "",
@@ -441,7 +450,6 @@ function renderHomeWithError(res, errorMessage, formValues) {
   model.getAllWatchlist((err, rows) => {
     res.status(400).render("home", {
       title: "Flood Claims Insight Dashboard (FCID)",
-      message: "Home page loaded.",
       error: errorMessage,
       watchlist: rows || [],
       hasError: !!err,
@@ -462,7 +470,6 @@ function renderEditWithToast(res, noteId, claimId, toastMessage, form) {
 
     res.status(400).render("editNote", {
       title: "Edit Note",
-      message: "Edit page loaded.",
       claimId: claimId,
       toastError: toastMessage,
       note: {
