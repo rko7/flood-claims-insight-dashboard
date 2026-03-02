@@ -234,11 +234,62 @@ app.post("/notes/update", (req, res) => {
 
 // add to watchlist
 app.post("/watchlist/add", (req, res) => {
+  // validate inputs
+  const claimId = (req.body.claim_id || "").trim();
+  const state = (req.body.state || "").trim();
+  const yearRaw = (req.body.year || "").trim();
+  const amountRaw = (req.body.amount || "").trim();
+
+  let year = null;
+  let amount = null;
+
+  if (!claimId) {
+    return renderHomeWithError(res, "Claim ID is required.", {
+      claim_id: claimId,
+      state: state,
+      year: yearRaw,
+      amount: amountRaw
+    });
+  }
+
+  if (!state) {
+    return renderHomeWithError(res, "State is required.", {
+      claim_id: claimId,
+      state: state,
+      year: yearRaw,
+      amount: amountRaw
+    });
+  }
+
+  if (yearRaw !== "") {
+    year = parseInt(yearRaw);
+    if (Number.isNaN(year) || year < 1900 || year > 2100) {
+      return renderHomeWithError(res, "Invalid year.", {
+        claim_id: claimId,
+        state: state,
+        year: yearRaw,
+        amount: amountRaw
+      });
+    }
+  }
+
+  if (amountRaw !== "") {
+    amount = parseFloat(amountRaw);
+    if (Number.isNaN(amount) || amount < 0) {
+      return renderHomeWithError(res, "Amount must be greater than or equal to 0.", {
+        claim_id: claimId,
+        state: state,
+        year: yearRaw,
+        amount: amountRaw
+      });
+    }
+  }
+
   const item = {
-    claim_id: req.body.claim_id,
-    state: req.body.state,
-    year: req.body.year ? parseInt(req.body.year) : null,
-    amount: req.body.amount ? parseFloat(req.body.amount) : null,
+    claim_id: claimId,
+    state: state,
+    year: year,
+    amount: amount,
     source: req.body.source || "manual"
   };
 
@@ -247,6 +298,20 @@ app.post("/watchlist/add", (req, res) => {
     res.redirect("/");
   });
 });
+
+// rerender home with error
+function renderHomeWithError(res, errorMessage, formValues) {
+  model.getAllWatchlist((err, rows) => {
+    res.status(400).render("home", {
+      title: "Flood Claims Insight Dashboard (FCID)",
+      message: "Home page loaded.",
+      error: errorMessage,
+      watchlist: rows || [],
+      hasError: !!err,
+      form: formValues || {}
+    });
+  });
+}
 
 // delete from watchlist
 app.post("/watchlist/delete", (req, res) => {

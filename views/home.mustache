@@ -46,23 +46,23 @@
 
   <form method="post" action="/watchlist/add">
     <div class="form-row">
-        <label class="form-label">Claim ID:</label>
-        <input type="text" name="claim_id" required>
+      <label class="form-label">Claim ID:</label>
+      <input type="text" name="claim_id" required value="{{form.claim_id}}">
     </div>
 
     <div class="form-row">
-        <label class="form-label">State:</label>
-        <input type="text" name="state" required>
+      <label class="form-label">State:</label>
+      <input type="text" name="state" required value="{{form.state}}">
     </div>
 
     <div class="form-row">
-        <label class="form-label">Year:</label>
-        <input type="number" name="year">
+      <label class="form-label">Year:</label>
+      <input type="number" name="year" value="{{form.year}}">
     </div>
 
     <div class="form-row">
-        <label class="form-label">Amount:</label>
-        <input type="number" step="0.01" name="amount">
+      <label class="form-label">Amount:</label>
+      <input type="number" step="0.01" name="amount" value="{{form.amount}}">
     </div>
 
     <button type="submit">Add</button>
