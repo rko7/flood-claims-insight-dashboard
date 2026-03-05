@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-toast="{{toastError}}">
+  {{> nav}}
+
+  <h1>{{ title }}</h1>
+  <p>This page will show saved reports.</p>
+
+  {{^reports}}
+    <p>No saved reports yet.</p>
+  {{/reports}}
+
+  <script src="/js/toast.js"></script>
+</body>
+</html>

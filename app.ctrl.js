@@ -40,13 +40,11 @@ function buildNoteForm(priorityRaw, noteText) {
     selected5: p === "5" ? "selected" : ""
   };
 }
-
 // state validation
 function isValidState2(stateRaw) {
   const s = (stateRaw || "").trim().toUpperCase();
   return /^[A-Z]{2}$/.test(s);
 }
-
 // date validation
 function parseYmd(s) {
   const v = (s || "").trim();
@@ -57,7 +55,6 @@ function parseYmd(s) {
   if (d.getUTCFullYear() !== yy || d.getUTCMonth() + 1 !== mm || d.getUTCDate() !== dd) return null;
   return v;
 }
-
 // claim ID validation
 function isLikelyValidClaimId(claimIdRaw) {
   const id = (claimIdRaw || "").trim();
@@ -769,6 +766,16 @@ app.post("/watchlist/delete", (req, res) => {
   model.deleteWatchlist(id, (err) => {
     if (err) return res.status(500).send("DB error");
     res.redirect("/");
+  });
+});
+
+// render saved reports page
+app.get("/reports", (req, res) => {
+  res.render("reports", {
+    title: "Saved Reports",
+    reports: [],
+    toastError: "",
+    form: {}
   });
 });
 
