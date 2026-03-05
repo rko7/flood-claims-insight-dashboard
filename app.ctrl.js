@@ -701,9 +701,21 @@ app.post("/watchlist/add", (req, res) => {
   };
 
   model.addWatchlist(item, (err) => {
-    if (err) return res.status(500).send("DB error");
-    res.redirect("/");
-  });
+  if (err) {
+    // Handle duplicate claim_id
+    const msg = String(err && err.message ? err.message : "");
+    if (msg.includes("UNIQUE") || msg.includes("constraint")) {
+      return renderHomeWithError(res, "Already saved in watchlist.", {
+        claim_id: claimId,
+        state: state,
+        year: yearRaw,
+        amount: amountRaw
+      });
+    }
+    return res.status(500).send("DB error");
+  }
+  res.redirect("/");
+});
 });
 
 // rerender home with error
