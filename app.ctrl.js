@@ -876,6 +876,17 @@ app.get("/reports/:id/run", (req, res) => {
   });
 });
 
+// delete saved report
+app.post("/reports/delete", (req, res) => {
+  const id = req.body.id ? parseInt(req.body.id, 10) : null;
+  if (!id) return res.status(400).send("Invalid id");
+
+  model.deleteReport(id, (err) => {
+    if (err) return res.status(500).send("DB error");
+    res.redirect("/reports");
+  });
+});
+
 function renderReportsWithError(res, errorMessage, formValues) {
   model.getAllReports((err, rows) => {
     const list = rows || [];

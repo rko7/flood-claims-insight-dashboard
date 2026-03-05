@@ -158,6 +158,12 @@ function getReportById(id, cb) {
   db.get(sql, [id], (err, row) => cb(err, row));
 }
 
+// delete a saved report
+function deleteReport(id, cb) {
+  const sql = "DELETE FROM saved_reports WHERE id = ?";
+  db.run(sql, [id], (err) => cb(err));
+}
+
 module.exports = {
   getAllWatchlist,
   getWatchlistByClaimId,
@@ -171,5 +177,6 @@ module.exports = {
   getAllNotes,
   getAllReports,
   addReport,
-  getReportById
+  getReportById,
+  deleteReport
 };
