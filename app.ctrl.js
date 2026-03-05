@@ -40,11 +40,13 @@ function buildNoteForm(priorityRaw, noteText) {
     selected5: p === "5" ? "selected" : ""
   };
 }
+
 // state validation
 function isValidState2(stateRaw) {
   const s = (stateRaw || "").trim().toUpperCase();
   return /^[A-Z]{2}$/.test(s);
 }
+
 // date validation
 function parseYmd(s) {
   const v = (s || "").trim();
@@ -55,6 +57,7 @@ function parseYmd(s) {
   if (d.getUTCFullYear() !== yy || d.getUTCMonth() + 1 !== mm || d.getUTCDate() !== dd) return null;
   return v;
 }
+
 // claim ID validation
 function isLikelyValidClaimId(claimIdRaw) {
   const id = (claimIdRaw || "").trim();
@@ -771,11 +774,20 @@ app.post("/watchlist/delete", (req, res) => {
 
 // render saved reports page
 app.get("/reports", (req, res) => {
-  res.render("reports", {
-    title: "Saved Reports",
-    reports: [],
-    toastError: "",
-    form: {}
+  model.getAllReports((err, rows) => {
+    const list = rows || [];
+
+    if (list.length > 0) {
+      list[0].firstRow = true;
+      list[list.length - 1].lastRow = true;
+    }
+
+    res.render("reports", {
+      title: "Saved Reports",
+      reports: list,
+      toastError: err ? "Error loading saved reports." : "",
+      form: {}
+    });
   });
 });
 

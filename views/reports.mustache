@@ -8,7 +8,37 @@
   {{> nav}}
 
   <h1>{{ title }}</h1>
-  <p>This page will show saved reports.</p>
+
+  {{#toastError}}
+    <p><strong>Error:</strong> {{ toastError }}</p>
+  {{/toastError}}
+
+  {{#reports}}
+    {{#firstRow}}
+    <table class="stack-table" border="1" cellpadding="6">
+      <tr>
+        <th>Name</th>
+        <th>Filters</th>
+        <th>Created</th>
+      </tr>
+    {{/firstRow}}
+
+      <tr>
+        <td>{{report_name}}</td>
+        <td>
+          {{#state}}State: {{state}} {{/state}}
+          {{#from_date}}From: {{from_date}} {{/from_date}}
+          {{#to_date}}To: {{to_date}} {{/to_date}}
+          {{#min_paid}}Min: ${{min_paid}} {{/min_paid}}
+          {{^state}}{{^from_date}}{{^to_date}}{{^min_paid}}-{{/min_paid}}{{/to_date}}{{/from_date}}{{/state}}
+        </td>
+        <td>{{created_at}}</td>
+      </tr>
+
+    {{#lastRow}}
+    </table>
+    {{/lastRow}}
+  {{/reports}}
 
   {{^reports}}
     <p>No saved reports yet.</p>
