@@ -152,6 +152,12 @@ function addReport(report, cb) {
   );
 }
 
+// get a saved report
+function getReportById(id, cb) {
+  const sql = "SELECT * FROM saved_reports WHERE id = ?";
+  db.get(sql, [id], (err, row) => cb(err, row));
+}
+
 module.exports = {
   getAllWatchlist,
   getWatchlistByClaimId,
@@ -164,5 +170,6 @@ module.exports = {
   updateNote,
   getAllNotes,
   getAllReports,
-  addReport
+  addReport,
+  getReportById
 };

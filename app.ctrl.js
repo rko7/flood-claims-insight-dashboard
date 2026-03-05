@@ -40,11 +40,13 @@ function buildNoteForm(priorityRaw, noteText) {
     selected5: p === "5" ? "selected" : ""
   };
 }
+
 // state validation
 function isValidState2(stateRaw) {
   const s = (stateRaw || "").trim().toUpperCase();
   return /^[A-Z]{2}$/.test(s);
 }
+
 // date validation
 function parseYmd(s) {
   const v = (s || "").trim();
@@ -55,6 +57,7 @@ function parseYmd(s) {
   if (d.getUTCFullYear() !== yy || d.getUTCMonth() + 1 !== mm || d.getUTCDate() !== dd) return null;
   return v;
 }
+
 // claim ID validation
 function isLikelyValidClaimId(claimIdRaw) {
   const id = (claimIdRaw || "").trim();
@@ -851,6 +854,26 @@ app.post("/reports/add", (req, res) => {
       res.redirect("/reports");
     }
   );
+});
+
+// run saved report
+app.get("/reports/:id/run", (req, res) => {
+  const id = req.params.id ? parseInt(req.params.id, 10) : null;
+  if (!id) return res.status(400).send("Invalid report id");
+
+  model.getReportById(id, (err, report) => {
+    if (err) return res.status(500).send("DB error");
+    if (!report) return res.status(404).send("Report not found");
+
+    const params = new URLSearchParams();
+    if (report.state) params.set("state", report.state);
+    if (report.from_date) params.set("from", report.from_date);
+    if (report.to_date) params.set("to", report.to_date);
+    if (report.min_paid != null && report.min_paid !== "") params.set("minPaid", String(report.min_paid));
+
+    const qs = params.toString();
+    res.redirect(qs ? `/claims?${qs}` : "/claims");
+  });
 });
 
 function renderReportsWithError(res, errorMessage, formValues) {

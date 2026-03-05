@@ -23,7 +23,7 @@
 
     <div class="form-row">
       <label class="form-label">State:</label>
-      <select name="state">
+      <select name="state" id="stateSelectReport">
         <option value="">-</option>
         <option value="AL">AL</option><option value="AK">AK</option><option value="AZ">AZ</option><option value="AR">AR</option>
         <option value="CA">CA</option><option value="CO">CO</option><option value="CT">CT</option><option value="DE">DE</option>
@@ -69,6 +69,7 @@
         <th>Name</th>
         <th>Filters</th>
         <th>Created</th>
+        <th>View Results</th>
       </tr>
     {{/firstRow}}
 
@@ -82,6 +83,11 @@
           {{^state}}{{^from_date}}{{^to_date}}{{^min_paid}}-{{/min_paid}}{{/to_date}}{{/from_date}}{{/state}}
         </td>
         <td>{{created_at}}</td>
+        <td>
+          <form method="get" action="/reports/{{id}}/run" style="display:inline;">
+            <button type="submit">View Results</button>
+          </form>
+        </td>
       </tr>
 
     {{#lastRow}}
