@@ -18,22 +18,26 @@ db.serialize(() => {
   `);
 
   db.run(`
-  CREATE TABLE IF NOT EXISTS notes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    claim_id TEXT NOT NULL,
-    note_text TEXT NOT NULL,
-    priority INTEGER,
-    created_at TEXT NOT NULL
-  )
-`);
+    CREATE TABLE IF NOT EXISTS notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      claim_id TEXT NOT NULL,
+      note_text TEXT NOT NULL,
+      priority INTEGER,
+      created_at TEXT NOT NULL
+    )
+  `);
 
-  db.run(
-    `
-    INSERT OR IGNORE INTO watchlist (claim_id, state, year, amount, saved_at, source)
-    VALUES (?, ?, ?, ?, datetime('now'), ?)
-    `,
-    ["demo-claim-001", "FL", 2020, 12345.67, "seed"]
-  );
+  db.run(`
+    CREATE TABLE IF NOT EXISTS saved_reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      report_name TEXT NOT NULL,
+      state TEXT,
+      from_date TEXT,
+      to_date TEXT,
+      min_paid REAL,
+      created_at TEXT NOT NULL
+    )
+  `);
 
   console.log("DB initialized:", dbPath);
 });

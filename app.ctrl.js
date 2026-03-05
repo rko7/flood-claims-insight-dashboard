@@ -40,11 +40,13 @@ function buildNoteForm(priorityRaw, noteText) {
     selected5: p === "5" ? "selected" : ""
   };
 }
+
 // state validation
 function isValidState2(stateRaw) {
   const s = (stateRaw || "").trim().toUpperCase();
   return /^[A-Z]{2}$/.test(s);
 }
+
 // date validation
 function parseYmd(s) {
   const v = (s || "").trim();
@@ -55,14 +57,12 @@ function parseYmd(s) {
   if (d.getUTCFullYear() !== yy || d.getUTCMonth() + 1 !== mm || d.getUTCDate() !== dd) return null;
   return v;
 }
+
 // claim ID validation
 function isLikelyValidClaimId(claimIdRaw) {
   const id = (claimIdRaw || "").trim();
-  if (/^demo-\d{3}$/i.test(id)) return true;
   return /^[A-Za-z0-9-]{6,80}$/.test(id);
 }
-
-
 
 // GET json
 function getJson(url) {
@@ -129,7 +129,7 @@ function mapToClaimRow(r, fallbackState) {
     r.year ||
     (typeof lossDate === "string" && lossDate.length >= 4 ? lossDate.slice(0, 4) : "");
 
-  // Paid amount key (OpenFEMA NFIP Claims)
+  // Paid amount key (OpenFEMA Claims)
   const buildingPaid = Number(r.amountPaidOnBuildingClaim || 0);
   const contentsPaid = Number(r.amountPaidOnContentsClaim || 0);
   const iccPaid = Number(r.amountPaidOnIncreasedCostOfComplianceClaim || 0);
@@ -250,8 +250,8 @@ app.get("/claims", async (req, res) => {
     }
 
     // use year range derived from from/to (YYYY-MM-DD)
-    const fromYear = filters.from && filters.from.length >= 4 ? parseInt(filters.from.slice(0, 4)) : null;
-    const toYear = filters.to && filters.to.length >= 4 ? parseInt(filters.to.slice(0, 4)) : null;
+    const fromYear = filters.from && filters.from.length >= 4 ? parseInt(filters.from.slice(0, 4), 10) : null;
+    const toYear = filters.to && filters.to.length >= 4 ? parseInt(filters.to.slice(0, 4), 10) : null;
 
     // claims yearOfLoss try
     const yearFilterParts = [];
@@ -309,27 +309,6 @@ app.get("/claims", async (req, res) => {
 app.get("/claims/:id", async (req, res) => {
   const id = req.params.id;
 
-  let details = null;
-  if (id === "demo-001") {
-    details = {
-      claimId: "demo-001",
-      state: "FL",
-      lossDate: "2026-01-15",
-      year: 2026,
-      paidAmount: "1000.00",
-      source: "demo"
-    };
-  } else if (id === "demo-002") {
-    details = {
-      claimId: "demo-002",
-      state: "FL",
-      lossDate: "2026-02-01",
-      year: 2026,
-      paidAmount: "2500.00",
-      source: "demo"
-    };
-  }
-
   // load notes + render details
   const loadNotesAndRender = (claimDetails, toastError, noteForm) => {
     model.getNotesByClaimId(id, (err, notes) => {
@@ -361,11 +340,6 @@ app.get("/claims/:id", async (req, res) => {
       });
     });
   };
-
-  // demo
-  if (details) {
-    return loadNotesAndRender(details);
-  }
 
   // watchlist fallback
   model.getWatchlistByClaimId(id, async (err, row) => {
@@ -519,28 +493,6 @@ function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
     });
   };
 
-  if (claimId === "demo-001") {
-    return renderWithDetails({
-      claimId: "demo-001",
-      state: "FL",
-      lossDate: "2026-01-15",
-      year: 2026,
-      paidAmount: "1000.00",
-      source: "demo"
-    });
-  }
-
-  if (claimId === "demo-002") {
-    return renderWithDetails({
-      claimId: "demo-002",
-      state: "FL",
-      lossDate: "2026-02-01",
-      year: 2026,
-      paidAmount: "2500.00",
-      source: "demo"
-    });
-  }
-
   model.getWatchlistByClaimId(claimId, async (err, row) => {
     if (err) return res.status(500).send("DB error");
 
@@ -643,7 +595,7 @@ app.post("/notes/update", (req, res) => {
 
   if (!noteId || !claimId) return res.status(400).send("Invalid request");
 
-  // note length 5..300
+  // note length 5 to 300
   if (noteText.length < 5 || noteText.length > 300) {
     return renderEditWithToast(res, noteId, claimId, "Note must be 5 to 300 characters.", {
       note_text: noteText,
@@ -651,7 +603,7 @@ app.post("/notes/update", (req, res) => {
     });
   }
 
-  // priority 1..5 (optional)
+  // priority 1 to 5 (optional)
   let priority = null;
   if (priorityRaw !== "") {
     priority = parseInt(priorityRaw);

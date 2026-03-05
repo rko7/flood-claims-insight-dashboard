@@ -19,12 +19,25 @@ db.run(`
 db.run(`
   CREATE TABLE IF NOT EXISTS watchlist (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    claim_id TEXT NOT NULL,
+    claim_id TEXT NOT NULL UNIQUE,
     state TEXT NOT NULL,
     year INTEGER,
     amount REAL,
     saved_at TEXT NOT NULL,
     source TEXT
+  )
+`);
+
+// saved_reports table
+db.run(`
+  CREATE TABLE IF NOT EXISTS saved_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_name TEXT NOT NULL,
+    state TEXT,
+    from_date TEXT,
+    to_date TEXT,
+    min_paid REAL,
+    created_at TEXT NOT NULL
   )
 `);
 
