@@ -133,6 +133,12 @@ function getAllNotes(cb) {
   });
 }
 
+//get all saved reports
+function getAllReports(cb) {
+  const sql = "SELECT * FROM saved_reports ORDER BY id DESC";
+  db.all(sql, [], (err, rows) => cb(err, rows));
+}
+
 module.exports = {
   getAllWatchlist,
   getWatchlistByClaimId,
@@ -143,5 +149,6 @@ module.exports = {
   deleteNote,
   getNoteById,
   updateNote,
-  getAllNotes
+  getAllNotes,
+  getAllReports
 };
