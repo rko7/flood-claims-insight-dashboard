@@ -4,7 +4,7 @@
   <title>{{ title }}</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body data-state="{{filters.state}}">
+<body data-state="{{filters.state}}" data-toast="{{toastError}}">
   {{> nav}}
 
   <h1>{{ title }}</h1>
@@ -149,5 +149,8 @@
       if (el && s) el.value = s;
     })();
   </script>
+
+  <!-- Toast support -->
+  <script src="/js/toast.js"></script>
 </body>
 </html>
