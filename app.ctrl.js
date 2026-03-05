@@ -40,13 +40,11 @@ function buildNoteForm(priorityRaw, noteText) {
     selected5: p === "5" ? "selected" : ""
   };
 }
-
 // state validation
 function isValidState2(stateRaw) {
   const s = (stateRaw || "").trim().toUpperCase();
   return /^[A-Z]{2}$/.test(s);
 }
-
 // date validation
 function parseYmd(s) {
   const v = (s || "").trim();
@@ -57,7 +55,6 @@ function parseYmd(s) {
   if (d.getUTCFullYear() !== yy || d.getUTCMonth() + 1 !== mm || d.getUTCDate() !== dd) return null;
   return v;
 }
-
 // claim ID validation
 function isLikelyValidClaimId(claimIdRaw) {
   const id = (claimIdRaw || "").trim();
@@ -790,6 +787,89 @@ app.get("/reports", (req, res) => {
     });
   });
 });
+
+// add saved report
+app.post("/reports/add", (req, res) => {
+  const name = (req.body.report_name || "").trim();
+  const stateRaw = (req.body.state || "").trim().toUpperCase();
+  const fromRaw = (req.body.from || "").trim();
+  const toRaw = (req.body.to || "").trim();
+  const minPaidRaw = (req.body.minPaid || "").trim();
+
+  if (name.length < 3 || name.length > 60) {
+    return renderReportsWithError(res, "Report name must be 3 to 60 characters.", {
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+    });
+  }
+
+  if (stateRaw !== "" && !isValidState2(stateRaw)) {
+    return renderReportsWithError(res, "State must be a 2-letter code.", {
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+    });
+  }
+
+  const fromYmd = fromRaw !== "" ? parseYmd(fromRaw) : "";
+  const toYmd = toRaw !== "" ? parseYmd(toRaw) : "";
+
+  if (fromRaw !== "" && !fromYmd) {
+    return renderReportsWithError(res, "From date must be in YYYY-MM-DD format.", {
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+    });
+  }
+  if (toRaw !== "" && !toYmd) {
+    return renderReportsWithError(res, "To date must be in YYYY-MM-DD format.", {
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+    });
+  }
+  if (fromYmd && toYmd && fromYmd > toYmd) {
+    return renderReportsWithError(res, "From date must be earlier than or equal to To date.", {
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+    });
+  }
+
+  let minPaid = null;
+  if (minPaidRaw !== "") {
+    const v = parseFloat(minPaidRaw);
+    if (Number.isNaN(v) || v < 0) {
+      return renderReportsWithError(res, "Min paid must be a number greater than or equal to 0.", {
+        report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+      });
+    }
+    minPaid = v;
+  }
+
+  model.addReport(
+    {
+      report_name: name,
+      state: stateRaw || null,
+      from_date: fromYmd || null,
+      to_date: toYmd || null,
+      min_paid: minPaid
+    },
+    (err) => {
+      if (err) return res.status(500).send("DB error");
+      res.redirect("/reports");
+    }
+  );
+});
+
+function renderReportsWithError(res, errorMessage, formValues) {
+  model.getAllReports((err, rows) => {
+    const list = rows || [];
+
+    if (list.length > 0) {
+      list[0].firstRow = true;
+      list[list.length - 1].lastRow = true;
+    }
+
+    res.status(400).render("reports", {
+      title: "Saved Reports",
+      reports: list,
+      toastError: errorMessage,
+      form: formValues || {}
+    });
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

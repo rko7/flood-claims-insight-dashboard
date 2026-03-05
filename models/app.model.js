@@ -139,6 +139,19 @@ function getAllReports(cb) {
   db.all(sql, [], (err, rows) => cb(err, rows));
 }
 
+// add a saved report
+function addReport(report, cb) {
+  const sql = `
+    INSERT INTO saved_reports (report_name, state, from_date, to_date, min_paid, created_at)
+    VALUES (?, ?, ?, ?, ?, datetime('now'))
+  `;
+  db.run(
+    sql,
+    [report.report_name, report.state, report.from_date, report.to_date, report.min_paid],
+    (err) => cb(err)
+  );
+}
+
 module.exports = {
   getAllWatchlist,
   getWatchlistByClaimId,
@@ -150,5 +163,6 @@ module.exports = {
   getNoteById,
   updateNote,
   getAllNotes,
-  getAllReports
+  getAllReports,
+  addReport
 };
