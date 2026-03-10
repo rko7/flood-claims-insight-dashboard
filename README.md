@@ -24,6 +24,11 @@ FCID is a small Node.js + Express web app that helps explore flood-related claim
   - View all notes in one place
   - Includes basic watchlist info when available
 
+- **Saved Reports**
+  - Save a report with filter settings (State, From/To, Min Paid)
+  - View Results runs the saved filters and redirects to **Claims Explorer**
+  - Delete saved reports
+
 ## Tech Stack
 
 - Node.js + Express (server)
@@ -65,6 +70,7 @@ Claims are retrieved from the FEMA OpenFEMA API when filters are applied in the 
 - Notes
   - Note text length: **5 to 300** characters
   - Priority: optional, but if provided must be **1 to 5**
+
 
 ## How to Run
 
