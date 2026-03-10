@@ -71,7 +71,6 @@ Claims are retrieved from the FEMA OpenFEMA API when filters are applied in the 
   - Note text length: **5 to 300** characters
   - Priority: optional, but if provided must be **1 to 5**
 
-
 ## How to Run
 
 1. Install dependencies:
@@ -88,3 +87,10 @@ node app.ctrl.js
 ```
 3. Open in your browser
 - http://localhost:3000
+
+
+## Notes on Design Changes (vs Proposal)
+
+During implementation, a few parts were adjusted to improve stability and make the app easier to demonstrate.
+Most changes focus on simpler filters, a safer responsive layout, and a cleaner database structure.
+Details are in `PROPOSAL_CHANGES.md`.
