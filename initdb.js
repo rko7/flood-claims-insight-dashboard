@@ -13,6 +13,7 @@ db.serialize(() => {
       year INTEGER,
       amount REAL,
       flood_zone TEXT,
+      cause_code TEXT,
       saved_at TEXT NOT NULL,
       source TEXT
     )
@@ -38,6 +39,7 @@ db.serialize(() => {
       min_paid REAL,
       max_paid REAL,
       flood_zone TEXT,
+      cause_code TEXT,
       created_at TEXT NOT NULL
     )
   `);

@@ -24,6 +24,7 @@ db.run(`
     year INTEGER,
     amount REAL,
     flood_zone TEXT,
+    cause_code TEXT,
     saved_at TEXT NOT NULL,
     source TEXT
   )
@@ -40,14 +41,17 @@ db.run(`
     min_paid REAL,
     max_paid REAL,
     flood_zone TEXT,
+    cause TEXT,
     created_at TEXT NOT NULL
   )
 `);
 
 // lightweight migration for older db files (ignore if already exists)
 db.run(`ALTER TABLE watchlist ADD COLUMN flood_zone TEXT`, () => {});
+db.run(`ALTER TABLE watchlist ADD COLUMN cause_code TEXT`, () => {});
 db.run(`ALTER TABLE saved_reports ADD COLUMN max_paid REAL`, () => {});
 db.run(`ALTER TABLE saved_reports ADD COLUMN flood_zone TEXT`, () => {});
+db.run(`ALTER TABLE saved_reports ADD COLUMN cause TEXT`, () => {});
 
 // watchlist
 function getAllWatchlist(cb) {
@@ -68,12 +72,20 @@ function getWatchlistByClaimId(claimId, cb) {
 // add a watchlist record
 function addWatchlist(item, cb) {
   const sql = `
-    INSERT INTO watchlist (claim_id, state, year, amount, flood_zone, saved_at, source)
-    VALUES (?, ?, ?, ?, ?, datetime('now'), ?)
+    INSERT INTO watchlist (claim_id, state, year, amount, flood_zone, cause_code, saved_at, source)
+    VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?)
   `;
   db.run(
     sql,
-    [item.claim_id, item.state, item.year, item.amount, item.flood_zone || null, item.source],
+    [
+      item.claim_id,
+      item.state,
+      item.year,
+      item.amount,
+      item.flood_zone || null,
+      item.cause_code || null,
+      item.source
+    ],
     (err) => cb(err)
   );
 }
@@ -133,7 +145,8 @@ function getAllNotes(cb) {
       w.state AS wl_state,
       w.year AS wl_year,
       w.amount AS wl_amount,
-      w.flood_zone AS wl_flood_zone
+      w.flood_zone AS wl_flood_zone,
+      w.cause_code AS wl_cause_code
     FROM notes n
     LEFT JOIN watchlist w ON w.claim_id = n.claim_id
     ORDER BY n.id DESC
@@ -152,12 +165,21 @@ function getAllReports(cb) {
 // add a saved report
 function addReport(report, cb) {
   const sql = `
-    INSERT INTO saved_reports (report_name, state, from_date, to_date, min_paid, max_paid, flood_zone, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    INSERT INTO saved_reports (report_name, state, from_date, to_date, min_paid, max_paid, flood_zone, cause, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   `;
   db.run(
     sql,
-    [report.report_name, report.state, report.from_date, report.to_date, report.min_paid, report.max_paid, report.flood_zone],
+    [
+      report.report_name,
+      report.state,
+      report.from_date,
+      report.to_date,
+      report.min_paid,
+      report.max_paid,
+      report.flood_zone,
+      report.cause || null
+    ],
     (err) => cb(err)
   );
 }

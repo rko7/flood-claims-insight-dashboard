@@ -128,6 +128,28 @@
       <small>Tip: A/AE = high risk. V/VE = coastal high risk. X = lower risk.</small>
     </div>
 
+    <!-- Cause of Damage -->
+    <div class="form-row">
+      <label class="form-label">Cause:</label>
+      <select name="cause" id="causeSelect">
+        <option value="">-</option>
+
+        <option value="0">0: Other causes</option>
+        <option value="1">1: Tidal water overflow</option>
+        <option value="2">2: Stream/river/lake overflow</option>
+        <option value="3">3: Alluvial fan overflow</option>
+        <option value="4">4: Rainfall or snowmelt</option>
+        <option value="7">7: Erosion-demolition (pre-1995)</option>
+        <option value="8">8: Erosion-removal (pre-1995)</option>
+        <option value="9">9: Earth movement</option>
+        <option value="A">A: Closed basin lake</option>
+        <option value="B">B: Expedited (no inspection)</option>
+        <option value="C">C: Expedited (follow-up inspection)</option>
+        <option value="D">D: Remote adjustment</option>
+      </select>
+      <small>Pick one. Some claims can have more than one code, but this filter matches one code.</small>
+    </div>
+
     <button type="submit">Apply</button>
     <a class="button-link" href="/claims">Reset</a>
   </form>
@@ -141,6 +163,7 @@
         <th>State</th>
         <th>Loss Date</th>
         <th>Flood Zone</th>
+        <th>Cause</th>
         <th>Paid Amount ($)</th>
         <th>View</th>
         <th>Save</th>
@@ -155,6 +178,11 @@
         <td>
           {{#floodZone}}{{floodZone}}{{/floodZone}}
           {{^floodZone}}-{{/floodZone}}
+        </td>
+
+        <td>
+          {{#cause}}{{cause}}{{/cause}}
+          {{^cause}}-{{/cause}}
         </td>
 
         <td>{{paidAmount}}</td>
@@ -195,6 +223,10 @@
       var z = "{{filters.floodZone}}";
       var zEl = document.getElementById("zoneSelect");
       if (zEl && z) zEl.value = z;
+
+      var c = "{{filters.cause}}";
+      var cEl = document.getElementById("causeSelect");
+      if (cEl && c) cEl.value = c;
     })();
   </script>
 

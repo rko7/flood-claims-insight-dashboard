@@ -19,7 +19,23 @@
     <tr><th>Loss Date</th><td>{{claim.lossDate}}</td></tr>
     <tr><th>Year</th><td>{{claim.year}}</td></tr>
     <tr><th>Paid Amount ($)</th><td>{{claim.paidAmount}}</td></tr>
-    <tr><th>Flood Zone</th><td>{{claim.floodZone}}</td></tr>
+
+    <tr>
+      <th>Flood Zone</th>
+      <td>
+        {{#claim.floodZone}}{{claim.floodZone}}{{/claim.floodZone}}
+        {{^claim.floodZone}}-{{/claim.floodZone}}
+      </td>
+    </tr>
+
+    <tr>
+      <th>Cause</th>
+      <td>
+        {{#claim.cause}}{{claim.cause}}{{/claim.cause}}
+        {{^claim.cause}}-{{/claim.cause}}
+      </td>
+    </tr>
+
     <tr><th>Source</th><td>{{claim.source}}</td></tr>
   </table>
 

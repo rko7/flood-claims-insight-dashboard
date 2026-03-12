@@ -81,6 +81,27 @@
       </select>
     </div>
 
+    <!-- Cause of Damage -->
+    <div class="form-row">
+      <label class="form-label">Cause:</label>
+      <select name="cause" id="causeSelectReport">
+        <option value="">-</option>
+        <option value="0">0: Other causes</option>
+        <option value="1">1: Tidal water overflow</option>
+        <option value="2">2: Stream/river/lake overflow</option>
+        <option value="3">3: Alluvial fan overflow</option>
+        <option value="4">4: Rainfall or snowmelt</option>
+        <option value="7">7: Erosion-demolition (pre-1995)</option>
+        <option value="8">8: Erosion-removal (pre-1995)</option>
+        <option value="9">9: Earth movement</option>
+        <option value="A">A: Closed basin lake</option>
+        <option value="B">B: Expedited (no inspection)</option>
+        <option value="C">C: Expedited (follow-up inspection)</option>
+        <option value="D">D: Remote adjustment</option>
+      </select>
+      <small>Pick one. Some claims can have more than one code, but this filter matches one code.</small>
+    </div>
+
     <button type="submit">Save Report</button>
   </form>
 
@@ -107,7 +128,8 @@
           {{#min_paid}}Min: ${{min_paid}} {{/min_paid}}
           {{#max_paid}}Max: ${{max_paid}} {{/max_paid}}
           {{#flood_zone}}Zone: {{flood_zone}} {{/flood_zone}}
-          {{^state}}{{^from_date}}{{^to_date}}{{^min_paid}}{{^max_paid}}{{^flood_zone}}-{{/flood_zone}}{{/max_paid}}{{/min_paid}}{{/to_date}}{{/from_date}}{{/state}}
+          {{#cause}}Cause: {{cause}} {{/cause}}
+          {{^state}}{{^from_date}}{{^to_date}}{{^min_paid}}{{^max_paid}}{{^flood_zone}}{{^cause}}-{{/cause}}{{/flood_zone}}{{/max_paid}}{{/min_paid}}{{/to_date}}{{/from_date}}{{/state}}
         </td>
         <td>{{created_at}}</td>
         <td>
@@ -142,6 +164,10 @@
       var z = "{{form.floodZone}}";
       var zEl = document.getElementById("zoneSelectReport");
       if (zEl && z) zEl.value = z;
+
+      var c = "{{form.cause}}";
+      var cEl = document.getElementById("causeSelectReport");
+      if (cEl && c) cEl.value = c;
     })();
   </script>
 

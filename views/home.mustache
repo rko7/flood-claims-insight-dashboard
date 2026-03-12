@@ -4,7 +4,7 @@
   <title>{{ title }}</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body data-state="{{form.state}}" data-toast="{{error}}">
+<body data-state="{{form.state}}" data-toast="{{toastError}}">
   {{> nav}}
   
   <h1>{{ title }}</h1>
@@ -13,9 +13,9 @@
     <p><strong>Warning:</strong> {{ warning }}</p>
   {{/warning}}
 
-  {{#error}}
-    <p><strong>Error:</strong> {{ error }}</p>
-  {{/error}}
+  {{#toastError}}
+    <p><strong>Error:</strong> {{ toastError }}</p>
+  {{/toastError}}
 
   <h2>Watchlist</h2>
 
@@ -32,6 +32,7 @@
         <th>Year</th>
         <th>Amount ($)</th>
         <th>Flood Zone</th>
+        <th>Cause</th>
         <th>Actions</th>
       </tr>
     {{/firstRow}}
@@ -41,10 +42,17 @@
         <td>{{state}}</td>
         <td>{{year}}</td>
         <td>{{amount}}</td>
+
         <td>
           {{#flood_zone}}{{flood_zone}}{{/flood_zone}}
           {{^flood_zone}}-{{/flood_zone}}
         </td>
+
+        <td>
+          {{#cause_code}}{{cause_code}}{{/cause_code}}
+          {{^cause_code}}-{{/cause_code}}
+        </td>
+
         <td>
           <form method="post" action="/watchlist/delete" style="display:inline;">
             <input type="hidden" name="id" value="{{id}}">

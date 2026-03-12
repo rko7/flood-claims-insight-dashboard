@@ -106,6 +106,17 @@ function extractFloodZone(r) {
   );
 }
 
+// cause extraction (best-effort, API fields vary)
+function extractCause(r) {
+  if (!r || typeof r !== "object") return "";
+  return (
+    r.causeOfDamage ||
+    r.causeOfDamageCode ||
+    r.cause_of_damage ||
+    ""
+  );
+}
+
 // mapping for claim-like rows
 function mapToClaimRow(r, fallbackState) {
   const claimId =
@@ -172,6 +183,7 @@ function mapToClaimRow(r, fallbackState) {
   }
 
   const floodZone = extractFloodZone(r);
+  const cause = extractCause(r);
 
   return {
     claimId: String(claimId),
@@ -179,6 +191,7 @@ function mapToClaimRow(r, fallbackState) {
     lossDate: lossDate ? String(lossDate).slice(0, 10) : "",
     year: year,
     floodZone: floodZone ? String(floodZone) : "",
+    cause: cause ? String(cause) : "",
     paidAmount: paidAmount
   };
 }
@@ -210,7 +223,8 @@ app.get("/claims", async (req, res) => {
     to: (req.query.to || "").trim(),
     minPaid: (req.query.minPaid || "").trim(),
     maxPaid: (req.query.maxPaid || "").trim(),
-    floodZone: (req.query.floodZone || "").trim().toUpperCase()
+    floodZone: (req.query.floodZone || "").trim().toUpperCase(),
+    cause: (req.query.cause || "").trim().toUpperCase()
   };
   let formError = "";
 
@@ -261,13 +275,19 @@ app.get("/claims", async (req, res) => {
     formError = "Flood zone is invalid.";
   }
 
+  // cause basic validation (optional)
+  if (!formError && filters.cause !== "" && !/^[0-9A-Z]{1}$/.test(filters.cause)) {
+    formError = "Cause is invalid.";
+  }
+
   const hasFilters =
     filters.state !== "" ||
     filters.from !== "" ||
     filters.to !== "" ||
     filters.minPaid !== "" ||
     filters.maxPaid !== "" ||
-    filters.floodZone !== "";
+    filters.floodZone !== "" ||
+    filters.cause !== "";
 
   // results
   let results = [];
@@ -305,7 +325,7 @@ app.get("/claims", async (req, res) => {
     const yearFilter = yearFilterParts.length > 0 ? yearFilterParts.join(" and ") : "";
 
     const primaryBase = "https://www.fema.gov/api/open/v2/FimaNfipClaims";
-    const topN = 100; // larger than 25 so local filtering (maxPaid/floodZone) still has a chance
+    const topN = 100; // fetch more rows first so extra filters still can find matches
 
     let primaryUrl = `${primaryBase}?$top=${topN}`;
     if (baseFilter || yearFilter) {
@@ -332,6 +352,11 @@ app.get("/claims", async (req, res) => {
       // apply flood zone filter (local)
       if (filters.floodZone !== "") {
         results = results.filter((r) => (r.floodZone || "").toUpperCase() === filters.floodZone);
+      }
+
+      // apply cause filter using text match
+      if (filters.cause !== "") {
+        results = results.filter((r) => (r.cause || "").toUpperCase().includes(filters.cause));
       }
 
       // format paidAmount for display
@@ -402,6 +427,8 @@ app.get("/claims/:id", async (req, res) => {
         lossDate: "",
         year: row.year || "",
         paidAmount: row.amount != null ? Number(row.amount).toFixed(2) : "",
+        floodZone: row.flood_zone || "",
+        cause: row.cause_code || row.cause || "",
         source: row.source || "watchlist"
       };
       return loadNotesAndRender(claimDetails);
@@ -430,6 +457,7 @@ app.get("/claims/:id", async (req, res) => {
 
       const lossDate = r.dateOfLoss ? String(r.dateOfLoss).slice(0, 10) : "";
       const floodZone = extractFloodZone(r);
+      const cause = extractCause(r);
 
       const claimDetails = {
         claimId: String(r.id || id),
@@ -437,6 +465,7 @@ app.get("/claims/:id", async (req, res) => {
         lossDate: lossDate,
         year: r.yearOfLoss || "",
         floodZone: floodZone ? String(floodZone) : "",
+        cause: cause ? String(cause) : "",
         paidAmount: Number(paidAmount).toFixed(2),
         source: "openfema"
       };
@@ -555,6 +584,8 @@ function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
         lossDate: "",
         year: row.year || "",
         paidAmount: row.amount != null ? Number(row.amount).toFixed(2) : "",
+        floodZone: row.flood_zone || "",
+        cause: row.cause_code || row.cause || "",
         source: row.source || "watchlist"
       });
     }
@@ -582,6 +613,7 @@ function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
 
       const lossDate = r.dateOfLoss ? String(r.dateOfLoss).slice(0, 10) : "";
       const floodZone = extractFloodZone(r);
+      const cause = extractCause(r);
 
       return renderWithDetails({
         claimId: String(r.id || claimId),
@@ -589,6 +621,7 @@ function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
         lossDate: lossDate,
         year: r.yearOfLoss || "",
         floodZone: floodZone ? String(floodZone) : "",
+        cause: cause ? String(cause) : "",
         paidAmount: Number(paidAmount).toFixed(2),
         source: "openfema"
       });
@@ -682,6 +715,7 @@ app.post("/watchlist/add", (req, res) => {
   const state = (req.body.state || "").trim();
   const yearRaw = (req.body.year || "").trim();
   const amountRaw = (req.body.amount || "").trim();
+  const floodZoneRaw = (req.body.flood_zone || req.body.floodZone || "").trim().toUpperCase();
 
   let year = null;
   let amount = null;
@@ -751,6 +785,7 @@ app.post("/watchlist/add", (req, res) => {
     state: state.toUpperCase(),
     year: year,
     amount: amount,
+    flood_zone: floodZoneRaw || null,
     source: req.body.source || "manual"
   };
 
@@ -864,16 +899,19 @@ app.post("/reports/add", (req, res) => {
   const fromRaw = (req.body.from || "").trim();
   const toRaw = (req.body.to || "").trim();
   const minPaidRaw = (req.body.minPaid || "").trim();
+  const maxPaidRaw = (req.body.maxPaid || "").trim();
+  const floodZoneRaw = (req.body.floodZone || "").trim().toUpperCase();
+  const causeRaw = (req.body.cause || "").trim().toUpperCase();
 
   if (name.length < 3 || name.length > 60) {
     return renderReportsWithError(res, "Report name must be 3 to 60 characters.", {
-      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
     });
   }
 
   if (stateRaw !== "" && !isValidState2(stateRaw)) {
     return renderReportsWithError(res, "State must be a 2-letter code.", {
-      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
     });
   }
 
@@ -882,17 +920,17 @@ app.post("/reports/add", (req, res) => {
 
   if (fromRaw !== "" && !fromYmd) {
     return renderReportsWithError(res, "From date must be in YYYY-MM-DD format.", {
-      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
     });
   }
   if (toRaw !== "" && !toYmd) {
     return renderReportsWithError(res, "To date must be in YYYY-MM-DD format.", {
-      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
     });
   }
   if (fromYmd && toYmd && fromYmd > toYmd) {
     return renderReportsWithError(res, "From date must be earlier than or equal to To date.", {
-      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
     });
   }
 
@@ -901,10 +939,39 @@ app.post("/reports/add", (req, res) => {
     const v = parseFloat(minPaidRaw);
     if (Number.isNaN(v) || v < 0) {
       return renderReportsWithError(res, "Min paid must be a number greater than or equal to 0.", {
-        report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw
+        report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
       });
     }
     minPaid = v;
+  }
+
+  let maxPaid = null;
+  if (maxPaidRaw !== "") {
+    const v = parseFloat(maxPaidRaw);
+    if (Number.isNaN(v) || v < 0) {
+      return renderReportsWithError(res, "Max paid must be a number greater than or equal to 0.", {
+        report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
+      });
+    }
+    maxPaid = v;
+  }
+
+  if (minPaid != null && maxPaid != null && minPaid > maxPaid) {
+    return renderReportsWithError(res, "Min paid must be less than or equal to Max paid.", {
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
+    });
+  }
+
+  if (floodZoneRaw !== "" && !/^[A-Z0-9]{1,3}$/.test(floodZoneRaw)) {
+    return renderReportsWithError(res, "Flood zone is invalid.", {
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
+    });
+  }
+
+  if (causeRaw !== "" && !/^[0-9A-Z]{1}$/.test(causeRaw)) {
+    return renderReportsWithError(res, "Cause is invalid.", {
+      report_name: name, state: stateRaw, from: fromRaw, to: toRaw, minPaid: minPaidRaw, maxPaid: maxPaidRaw, floodZone: floodZoneRaw, cause: causeRaw
+    });
   }
 
   model.addReport(
@@ -913,7 +980,10 @@ app.post("/reports/add", (req, res) => {
       state: stateRaw || null,
       from_date: fromYmd || null,
       to_date: toYmd || null,
-      min_paid: minPaid
+      min_paid: minPaid,
+      max_paid: maxPaid,
+      flood_zone: floodZoneRaw || null,
+      cause: causeRaw || null
     },
     (err) => {
       if (err) return res.status(500).send("DB error");
@@ -936,6 +1006,9 @@ app.get("/reports/:id/run", (req, res) => {
     if (report.from_date) params.set("from", report.from_date);
     if (report.to_date) params.set("to", report.to_date);
     if (report.min_paid != null && report.min_paid !== "") params.set("minPaid", String(report.min_paid));
+    if (report.max_paid != null && report.max_paid !== "") params.set("maxPaid", String(report.max_paid));
+    if (report.flood_zone) params.set("floodZone", String(report.flood_zone));
+    if (report.cause) params.set("cause", String(report.cause));
 
     const qs = params.toString();
     res.redirect(qs ? `/claims?${qs}` : "/claims");
