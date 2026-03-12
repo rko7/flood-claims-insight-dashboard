@@ -87,8 +87,45 @@
     </div>
 
     <div class="form-row">
-      <label class="form-label">Amount&nbsp;($):</label>
+      <label class="form-label">Min Paid ($):</label>
       <input type="number" step="0.01" min="0" name="minPaid" value="{{filters.minPaid}}">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Max Paid ($):</label>
+      <input type="number" step="0.01" min="0" name="maxPaid" value="{{filters.maxPaid}}">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Flood Zone:</label>
+      <select name="floodZone" id="zoneSelect">
+        <option value="">-</option>
+
+        <optgroup label="High risk (A zones)">
+          <option value="AE">AE</option>
+          <option value="A">A</option>
+          <option value="AO">AO</option>
+          <option value="AH">AH</option>
+          <option value="A99">A99</option>
+          <option value="AR">AR</option>
+        </optgroup>
+
+        <optgroup label="Coastal high risk (V zones)">
+          <option value="VE">VE</option>
+          <option value="V">V</option>
+        </optgroup>
+
+        <optgroup label="Lower or moderate risk">
+          <option value="X">X</option>
+        </optgroup>
+
+        <optgroup label="Other / legacy">
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </optgroup>
+      </select>
+      <small>Tip: A/AE = high risk. V/VE = coastal high risk. X = lower risk.</small>
     </div>
 
     <button type="submit">Apply</button>
@@ -147,10 +184,14 @@
       var s = document.body.getAttribute("data-state") || "";
       var el = document.getElementById("stateSelect");
       if (el && s) el.value = s;
+
+      var z = "{{filters.floodZone}}";
+      var zEl = document.getElementById("zoneSelect");
+      if (zEl && z) zEl.value = z;
     })();
   </script>
 
-  <!-- Toast support -->
+  <!-- Toast -->
   <script src="/js/toast.js"></script>
 </body>
 </html>
