@@ -5,7 +5,7 @@ FCID is a small Node.js + Express web app that helps explore flood-related claim
 ## Features
 
 - **Claims Explorer**
-  - Filter claims by **State**, **Date range (From/To)**, and **Min Paid ($)**
+  - Filter claims by **State**, **Date range (From/To)**, **Paid Amount range (Min/Max)**, **Flood Zone**, and **Cause**
   - View claim details
   - Save a claim to the **Watchlist**
 
@@ -14,9 +14,10 @@ FCID is a small Node.js + Express web app that helps explore flood-related claim
   - Add a claim manually (with input validation)
   - Delete saved claims
   - Open a saved claim’s details page
+  - Flood Zone / Cause can show when available (API data can be missing for some records)
 
 - **Claim Details + Notes**
-  - View claim details (demo, watchlist fallback, or OpenFEMA lookup)
+  - View claim details (watchlist fallback or OpenFEMA lookup)
   - Notes: **Create / Edit / Delete**
   - Notes include an optional **Priority (1 to 5)**
 
@@ -25,7 +26,7 @@ FCID is a small Node.js + Express web app that helps explore flood-related claim
   - Includes basic watchlist info when available
 
 - **Saved Reports**
-  - Save a report with filter settings (State, From/To, Min Paid)
+  - Save a report with filter settings (State, From/To, Min/Max Paid, Flood Zone, Cause)
   - View Results runs the saved filters and redirects to **Claims Explorer**
   - Delete saved reports
 
@@ -42,25 +43,27 @@ FCID is a small Node.js + Express web app that helps explore flood-related claim
   Routes and controller logic
 
 - `models/app.model.js`  
-  SQLite queries for watchlist and notes
+  SQLite queries for watchlist, notes, and saved reports
 
 - `views/`  
   Mustache templates  
-  Examples: `home.mustache`, `claims.mustache`, `claimDetails.mustache`, `notes.mustache`, `editNote.mustache`, `nav.mustache`
+  Examples: `home.mustache`, `claims.mustache`, `claimDetails.mustache`, `notes.mustache`, `editNote.mustache`, `reports.mustache`, `nav.mustache`
 
 - `public/`  
   Static assets (CSS, images, JS)
 
 ## Data Source
 
-Claims are retrieved from the FEMA OpenFEMA API when filters are applied in the Claims Explorer. Some demo claim IDs (e.g., `demo-001`, `demo-002`) are supported for testing.
+Claims are retrieved from the FEMA OpenFEMA API when filters are applied in the Claims Explorer.
 
 ## Validation Rules (Examples)
 
 - Claims Explorer
   - Date must be in valid `YYYY-MM-DD` format
   - From date must be earlier than or equal to To date
-  - Min paid must be a number and greater than or equal to 0
+  - Min/Max paid must be numbers and greater than or equal to 0
+  - Min paid must be less than or equal to Max paid (if both provided)
+  - Flood Zone and Cause must match allowed formats (if provided)
 
 - Watchlist Add (manual)
   - Claim ID must match a basic allowed format (letters/numbers/hyphen)
@@ -92,5 +95,5 @@ node app.ctrl.js
 ## Notes on Design Changes (vs Proposal)
 
 During implementation, a few parts were adjusted to improve stability and make the app easier to demonstrate.
-Most changes focus on simpler filters, a safer responsive layout, and a cleaner database structure.
+Most changes focus on simpler UI choices, a safer responsive layout, and a database design that works cleanly with the API.
 Details are in `PROPOSAL_CHANGES.md`.
