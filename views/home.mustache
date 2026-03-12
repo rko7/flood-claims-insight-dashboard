@@ -31,6 +31,7 @@
         <th>State</th>
         <th>Year</th>
         <th>Amount ($)</th>
+        <th>Flood Zone</th>
         <th>Actions</th>
       </tr>
     {{/firstRow}}
@@ -40,6 +41,10 @@
         <td>{{state}}</td>
         <td>{{year}}</td>
         <td>{{amount}}</td>
+        <td>
+          {{#flood_zone}}{{flood_zone}}{{/flood_zone}}
+          {{^flood_zone}}-{{/flood_zone}}
+        </td>
         <td>
           <form method="post" action="/watchlist/delete" style="display:inline;">
             <input type="hidden" name="id" value="{{id}}">

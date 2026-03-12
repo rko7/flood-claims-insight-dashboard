@@ -56,6 +56,31 @@
       <input type="number" step="0.01" min="0" name="minPaid" value="{{form.minPaid}}">
     </div>
 
+    <div class="form-row">
+      <label class="form-label">Max Paid ($):</label>
+      <input type="number" step="0.01" min="0" name="maxPaid" value="{{form.maxPaid}}">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Flood Zone:</label>
+      <select name="floodZone" id="zoneSelectReport">
+        <option value="">-</option>
+        <optgroup label="High risk (A zones)">
+          <option value="AE">AE</option><option value="A">A</option><option value="AO">AO</option>
+          <option value="AH">AH</option><option value="A99">A99</option><option value="AR">AR</option>
+        </optgroup>
+        <optgroup label="Coastal high risk (V zones)">
+          <option value="VE">VE</option><option value="V">V</option>
+        </optgroup>
+        <optgroup label="Lower or moderate risk">
+          <option value="X">X</option>
+        </optgroup>
+        <optgroup label="Other / legacy">
+          <option value="B">B</option><option value="C">C</option><option value="D">D</option>
+        </optgroup>
+      </select>
+    </div>
+
     <button type="submit">Save Report</button>
   </form>
 
@@ -80,7 +105,9 @@
           {{#from_date}}From: {{from_date}} {{/from_date}}
           {{#to_date}}To: {{to_date}} {{/to_date}}
           {{#min_paid}}Min: ${{min_paid}} {{/min_paid}}
-          {{^state}}{{^from_date}}{{^to_date}}{{^min_paid}}-{{/min_paid}}{{/to_date}}{{/from_date}}{{/state}}
+          {{#max_paid}}Max: ${{max_paid}} {{/max_paid}}
+          {{#flood_zone}}Zone: {{flood_zone}} {{/flood_zone}}
+          {{^state}}{{^from_date}}{{^to_date}}{{^min_paid}}{{^max_paid}}{{^flood_zone}}-{{/flood_zone}}{{/max_paid}}{{/min_paid}}{{/to_date}}{{/from_date}}{{/state}}
         </td>
         <td>{{created_at}}</td>
         <td>
@@ -111,6 +138,10 @@
       var s = document.body.getAttribute("data-state") || "";
       var el = document.getElementById("stateSelectReport");
       if (el && s) el.value = s;
+
+      var z = "{{form.floodZone}}";
+      var zEl = document.getElementById("zoneSelectReport");
+      if (zEl && z) zEl.value = z;
     })();
   </script>
 

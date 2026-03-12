@@ -140,6 +140,7 @@
         <th>Claim ID</th>
         <th>State</th>
         <th>Loss Date</th>
+        <th>Flood Zone</th>
         <th>Paid Amount ($)</th>
         <th>View</th>
         <th>Save</th>
@@ -150,6 +151,12 @@
         <td>{{claimId}}</td>
         <td>{{state}}</td>
         <td>{{lossDate}}</td>
+
+        <td>
+          {{#floodZone}}{{floodZone}}{{/floodZone}}
+          {{^floodZone}}-{{/floodZone}}
+        </td>
+
         <td>{{paidAmount}}</td>
 
         <td>

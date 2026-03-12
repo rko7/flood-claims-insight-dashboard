@@ -93,6 +93,19 @@ function pickFirstArray(json) {
   return [];
 }
 
+// flood zone extraction (best-effort, API fields vary)
+function extractFloodZone(r) {
+  if (!r || typeof r !== "object") return "";
+  return (
+    r.floodZone ||
+    r.floodZoneCurrent ||
+    r.floodZoneCode ||
+    r.flood_zone ||
+    r.floodZoneIdentifier ||
+    ""
+  );
+}
+
 // mapping for claim-like rows
 function mapToClaimRow(r, fallbackState) {
   const claimId =
@@ -158,11 +171,14 @@ function mapToClaimRow(r, fallbackState) {
     paidAmount = Number.isFinite(paid) ? paid : 0;
   }
 
+  const floodZone = extractFloodZone(r);
+
   return {
     claimId: String(claimId),
     state: String(state),
     lossDate: lossDate ? String(lossDate).slice(0, 10) : "",
     year: year,
+    floodZone: floodZone ? String(floodZone) : "",
     paidAmount: paidAmount
   };
 }
@@ -192,7 +208,9 @@ app.get("/claims", async (req, res) => {
     state: (req.query.state || "").trim().toUpperCase(),
     from: (req.query.from || "").trim(),
     to: (req.query.to || "").trim(),
-    minPaid: (req.query.minPaid || "").trim()
+    minPaid: (req.query.minPaid || "").trim(),
+    maxPaid: (req.query.maxPaid || "").trim(),
+    floodZone: (req.query.floodZone || "").trim().toUpperCase()
   };
   let formError = "";
 
@@ -214,17 +232,42 @@ app.get("/claims", async (req, res) => {
     const y = parseInt(toYmd.slice(0, 4), 10);
     if (y < minYear || y > currentYear) formError = `To year must be between ${minYear} and ${currentYear}.`;
   }
+
   // minPaid validation (optional)
+  let minPaidNum = null;
   if (!formError && filters.minPaid !== "") {
     const min = parseFloat(filters.minPaid);
     if (Number.isNaN(min)) formError = "Min paid must be a number.";
     else if (min < 0) formError = "Min paid must be greater than or equal to 0.";
+    else minPaidNum = min;
   }
+
+  // maxPaid validation (optional)
+  let maxPaidNum = null;
+  if (!formError && filters.maxPaid !== "") {
+    const max = parseFloat(filters.maxPaid);
+    if (Number.isNaN(max)) formError = "Max paid must be a number.";
+    else if (max < 0) formError = "Max paid must be greater than or equal to 0.";
+    else maxPaidNum = max;
+  }
+
+  // range check
+  if (!formError && minPaidNum != null && maxPaidNum != null && minPaidNum > maxPaidNum) {
+    formError = "Min paid must be less than or equal to Max paid.";
+  }
+
+  // flood zone basic validation (optional)
+  if (!formError && filters.floodZone !== "" && !/^[A-Z0-9]{1,3}$/.test(filters.floodZone)) {
+    formError = "Flood zone is invalid.";
+  }
+
   const hasFilters =
     filters.state !== "" ||
     filters.from !== "" ||
     filters.to !== "" ||
-    filters.minPaid !== "";
+    filters.minPaid !== "" ||
+    filters.maxPaid !== "" ||
+    filters.floodZone !== "";
 
   // results
   let results = [];
@@ -262,7 +305,7 @@ app.get("/claims", async (req, res) => {
     const yearFilter = yearFilterParts.length > 0 ? yearFilterParts.join(" and ") : "";
 
     const primaryBase = "https://www.fema.gov/api/open/v2/FimaNfipClaims";
-    const topN = 25;
+    const topN = 100; // larger than 25 so local filtering (maxPaid/floodZone) still has a chance
 
     let primaryUrl = `${primaryBase}?$top=${topN}`;
     if (baseFilter || yearFilter) {
@@ -277,11 +320,18 @@ app.get("/claims", async (req, res) => {
       results = (arr || []).map((r) => mapToClaimRow(r, filters.state));
 
       // apply minPaid filter
-      if (filters.minPaid !== "") {
-        const min = parseFloat(filters.minPaid);
-        if (!Number.isNaN(min)) {
-          results = results.filter((r) => r.paidAmount >= min);
-        }
+      if (minPaidNum != null) {
+        results = results.filter((r) => r.paidAmount >= minPaidNum);
+      }
+
+      // apply maxPaid filter
+      if (maxPaidNum != null) {
+        results = results.filter((r) => r.paidAmount <= maxPaidNum);
+      }
+
+      // apply flood zone filter (local)
+      if (filters.floodZone !== "") {
+        results = results.filter((r) => (r.floodZone || "").toUpperCase() === filters.floodZone);
       }
 
       // format paidAmount for display
@@ -379,12 +429,14 @@ app.get("/claims/:id", async (req, res) => {
       if (Number.isFinite(iccPaid)) paidAmount += iccPaid;
 
       const lossDate = r.dateOfLoss ? String(r.dateOfLoss).slice(0, 10) : "";
+      const floodZone = extractFloodZone(r);
 
       const claimDetails = {
         claimId: String(r.id || id),
         state: r.state || "",
         lossDate: lossDate,
         year: r.yearOfLoss || "",
+        floodZone: floodZone ? String(floodZone) : "",
         paidAmount: Number(paidAmount).toFixed(2),
         source: "openfema"
       };
@@ -529,12 +581,14 @@ function renderDetailsWithToast(res, claimId, toastMessage, noteForm) {
       if (Number.isFinite(iccPaid)) paidAmount += iccPaid;
 
       const lossDate = r.dateOfLoss ? String(r.dateOfLoss).slice(0, 10) : "";
+      const floodZone = extractFloodZone(r);
 
       return renderWithDetails({
         claimId: String(r.id || claimId),
         state: r.state || "",
         lossDate: lossDate,
         year: r.yearOfLoss || "",
+        floodZone: floodZone ? String(floodZone) : "",
         paidAmount: Number(paidAmount).toFixed(2),
         source: "openfema"
       });
@@ -701,21 +755,21 @@ app.post("/watchlist/add", (req, res) => {
   };
 
   model.addWatchlist(item, (err) => {
-  if (err) {
-    // Handle duplicate claim_id
-    const msg = String(err && err.message ? err.message : "");
-    if (msg.includes("UNIQUE") || msg.includes("constraint")) {
-      return renderHomeWithError(res, "Already saved in watchlist.", {
-        claim_id: claimId,
-        state: state,
-        year: yearRaw,
-        amount: amountRaw
-      });
+    if (err) {
+      // Handle duplicate claim_id
+      const msg = String(err && err.message ? err.message : "");
+      if (msg.includes("UNIQUE") || msg.includes("constraint")) {
+        return renderHomeWithError(res, "Already saved in watchlist.", {
+          claim_id: claimId,
+          state: state,
+          year: yearRaw,
+          amount: amountRaw
+        });
+      }
+      return res.status(500).send("DB error");
     }
-    return res.status(500).send("DB error");
-  }
-  res.redirect("/");
-});
+    res.redirect("/");
+  });
 });
 
 // rerender home with error
