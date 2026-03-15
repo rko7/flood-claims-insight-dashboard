@@ -27,7 +27,8 @@ FCID is a small Node.js + Express web app that helps explore flood-related claim
 
 - **Saved Reports**
   - Save a report with filter settings (State, From/To, Min/Max Paid, Flood Zone, Cause)
-  - View Results runs the saved filters and redirects to **Claims Explorer**
+  - Report Details reads a saved report from the local database
+  - Run Report applies the saved filters and redirects to **Claims Explorer**
   - Delete saved reports
 
 ## Tech Stack
@@ -55,6 +56,7 @@ FCID is a small Node.js + Express web app that helps explore flood-related claim
 ## Data Source
 
 Claims are retrieved from the FEMA OpenFEMA API when filters are applied in the Claims Explorer.
+Because Claims Explorer depends on the external OpenFEMA API, API-based results may be temporarily unavailable if the service returns an error such as HTTP 503. In that case, saved report details can still be read from the local database.
 
 ## Validation Rules (Examples)
 
