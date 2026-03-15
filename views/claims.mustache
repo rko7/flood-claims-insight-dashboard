@@ -210,7 +210,9 @@
 
   {{^hasResults}}
     {{#hasFilters}}
-      <p>No results found.</p>
+      {{^apiUnavailable}}
+        <p>No results found.</p>
+      {{/apiUnavailable}}
     {{/hasFilters}}
   {{/hasResults}}
 

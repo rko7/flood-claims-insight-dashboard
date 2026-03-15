@@ -228,6 +228,7 @@ app.get("/claims", async (req, res) => {
     cause: (req.query.cause || "").trim().toUpperCase()
   };
   let formError = "";
+  let apiUnavailable = false;
 
   // date validation
   const fromYmd = filters.from !== "" ? parseYmd(filters.from) : "";
@@ -303,7 +304,8 @@ app.get("/claims", async (req, res) => {
         hasFilters,
         hasResults: false,
         results: [],
-        toastError: formError
+        toastError: formError,
+        apiUnavailable: false
       });
     }
 
@@ -368,6 +370,7 @@ app.get("/claims", async (req, res) => {
     } catch (e1) {
       console.log("[OpenFEMA] /claims error:", e1 && e1.message ? e1.message : e1);
       toastError = "OpenFEMA is unavailable right now. Please try again.";
+      apiUnavailable = true;
       results = [];
     }
   }
@@ -378,7 +381,8 @@ app.get("/claims", async (req, res) => {
     hasFilters: hasFilters,
     hasResults: results.length > 0,
     results: results,
-    toastError: toastError
+    toastError: toastError,
+    apiUnavailable: apiUnavailable
   });
 });
 
