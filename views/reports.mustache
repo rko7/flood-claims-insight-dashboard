@@ -106,6 +106,7 @@
   </form>
 
   <h2>Saved Reports</h2>
+  <p><small><strong>Report Details</strong> shows the saved filters from the database. Run Report applies those filters in Claims Explorer.</small></p>
 
   {{#reports}}
     {{#firstRow}}
@@ -114,7 +115,8 @@
         <th>Name</th>
         <th>Filters</th>
         <th>Created</th>
-        <th>View Results</th>
+        <th>Details</th>
+        <th>Run</th>
         <th>Delete</th>
       </tr>
     {{/firstRow}}
@@ -122,19 +124,24 @@
       <tr>
         <td>{{report_name}}</td>
         <td>
-          {{#state}}State: {{state}} {{/state}}
-          {{#from_date}}From: {{from_date}} {{/from_date}}
-          {{#to_date}}To: {{to_date}} {{/to_date}}
-          {{#min_paid}}Min: ${{min_paid}} {{/min_paid}}
-          {{#max_paid}}Max: ${{max_paid}} {{/max_paid}}
-          {{#flood_zone}}Zone: {{flood_zone}} {{/flood_zone}}
-          {{#cause}}Cause: {{cause}} {{/cause}}
+          {{#state}}<div><strong>State:</strong> {{state}}</div>{{/state}}
+          {{#from_date}}<div><strong>From:</strong> {{from_date}}</div>{{/from_date}}
+          {{#to_date}}<div><strong>To:</strong> {{to_date}}</div>{{/to_date}}
+          {{#min_paid}}<div><strong>Min:</strong> ${{min_paid}}</div>{{/min_paid}}
+          {{#max_paid}}<div><strong>Max:</strong> ${{max_paid}}</div>{{/max_paid}}
+          {{#flood_zone}}<div><strong>Zone:</strong> {{flood_zone}}</div>{{/flood_zone}}
+          {{#cause}}<div><strong>Cause:</strong> {{cause}}</div>{{/cause}}
           {{^state}}{{^from_date}}{{^to_date}}{{^min_paid}}{{^max_paid}}{{^flood_zone}}{{^cause}}-{{/cause}}{{/flood_zone}}{{/max_paid}}{{/min_paid}}{{/to_date}}{{/from_date}}{{/state}}
         </td>
         <td>{{created_at}}</td>
         <td>
+          <form method="get" action="/reports/{{id}}" style="display:inline;">
+            <button type="submit">Report Details</button>
+          </form>
+        </td>
+        <td>
           <form method="get" action="/reports/{{id}}/run" style="display:inline;">
-            <button type="submit">View Results</button>
+            <button type="submit">Run Report</button>
           </form>
         </td>
         <td>

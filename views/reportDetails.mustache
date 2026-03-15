@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-toast="{{toastError}}">
+  {{> nav}}
+
+  <h1>{{ title }}</h1>
+
+  <p><a href="/reports">Back to Saved Reports</a></p>
+
+  <h2>{{report.report_name}}</h2>
+
+  <!-- Read one saved report from DB -->
+  <table class="detail-table" border="1" cellpadding="6">
+    <tr>
+      <th>Name</th>
+      <td>{{report.report_name}}</td>
+    </tr>
+
+    <tr>
+      <th>State</th>
+      <td>
+        {{#report.state}}{{report.state}}{{/report.state}}
+        {{^report.state}}-{{/report.state}}
+      </td>
+    </tr>
+
+    <tr>
+      <th>From</th>
+      <td>
+        {{#report.from_date}}{{report.from_date}}{{/report.from_date}}
+        {{^report.from_date}}-{{/report.from_date}}
+      </td>
+    </tr>
+
+    <tr>
+      <th>To</th>
+      <td>
+        {{#report.to_date}}{{report.to_date}}{{/report.to_date}}
+        {{^report.to_date}}-{{/report.to_date}}
+      </td>
+    </tr>
+
+    <tr>
+      <th>Min Paid ($)</th>
+      <td>
+        {{#report.min_paid}}{{report.min_paid}}{{/report.min_paid}}
+        {{^report.min_paid}}-{{/report.min_paid}}
+      </td>
+    </tr>
+
+    <tr>
+      <th>Max Paid ($)</th>
+      <td>
+        {{#report.max_paid}}{{report.max_paid}}{{/report.max_paid}}
+        {{^report.max_paid}}-{{/report.max_paid}}
+      </td>
+    </tr>
+
+    <tr>
+      <th>Flood Zone</th>
+      <td>
+        {{#report.flood_zone}}{{report.flood_zone}}{{/report.flood_zone}}
+        {{^report.flood_zone}}-{{/report.flood_zone}}
+      </td>
+    </tr>
+
+    <tr>
+      <th>Cause</th>
+      <td>
+        {{#report.cause}}{{report.cause}}{{/report.cause}}
+        {{^report.cause}}-{{/report.cause}}
+      </td>
+    </tr>
+
+    <tr>
+      <th>Created</th>
+      <td>{{report.created_at}}</td>
+    </tr>
+  </table>
+
+  <!-- Keep run action separate from read action -->
+  <p>
+    <form method="get" action="/reports/{{report.id}}/run" style="display:inline;">
+      <button type="submit">View Results</button>
+    </form>
+  </p>
+  
+  <!-- Toast  -->
+  <script src="/js/toast.js"></script>
+</body>
+</html>

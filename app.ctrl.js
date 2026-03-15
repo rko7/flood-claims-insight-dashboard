@@ -72,6 +72,7 @@ function getJson(url) {
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
+          console.log(`[OpenFEMA] ${res.statusCode} ${url}`);
           if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
           try {
             resolve(JSON.parse(data));
@@ -365,6 +366,7 @@ app.get("/claims", async (req, res) => {
         paidAmount: Number(r.paidAmount).toFixed(2)
       }));
     } catch (e1) {
+      console.log("[OpenFEMA] /claims error:", e1 && e1.message ? e1.message : e1);
       toastError = "OpenFEMA is unavailable right now. Please try again.";
       results = [];
     }
@@ -990,6 +992,23 @@ app.post("/reports/add", (req, res) => {
       res.redirect("/reports");
     }
   );
+});
+
+// read one saved report
+app.get("/reports/:id", (req, res) => {
+  const id = req.params.id ? parseInt(req.params.id, 10) : null;
+  if (!id) return res.status(400).send("Invalid report id");
+
+  model.getReportById(id, (err, report) => {
+    if (err) return res.status(500).send("DB error");
+    if (!report) return res.status(404).send("Report not found");
+
+    res.render("reportDetails", {
+      title: "Report Details",
+      report: report,
+      toastError: ""
+    });
+  });
 });
 
 // run saved report
